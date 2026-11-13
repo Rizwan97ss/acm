@@ -2,24 +2,23 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Seed the application's database.
+     *
+     * Permissions and system roles are always synced. Demo schools and accounts
+     * (with a known password) are only created outside production.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        Artisan::call('rbac:sync');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (! app()->isProduction()) {
+            $this->call(DemoSeeder::class);
+        }
     }
 }

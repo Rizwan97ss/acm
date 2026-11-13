@@ -29,12 +29,28 @@ const setCookie = (name: string, value: string, days = 365): void => {
     document.cookie = `${name}=${value};path=/;max-age=${maxAge};SameSite=Lax`;
 };
 
+/**
+ * The school/platform default theme, rendered by the server on the <html> element.
+ */
+const getDefaultAppearance = (): Appearance => {
+    if (typeof document === 'undefined') {
+        return 'system';
+    }
+
+    const value = document.documentElement.dataset.defaultAppearance;
+
+    return value === 'light' || value === 'dark' ? value : 'system';
+};
+
 const getStoredAppearance = (): Appearance => {
     if (typeof window === 'undefined') {
         return 'system';
     }
 
-    return (localStorage.getItem('appearance') as Appearance) || 'system';
+    return (
+        (localStorage.getItem('appearance') as Appearance) ||
+        getDefaultAppearance()
+    );
 };
 
 const isDarkMode = (appearance: Appearance): boolean => {
@@ -73,11 +89,6 @@ const handleSystemThemeChange = (): void => applyTheme(currentAppearance);
 export function initializeTheme(): void {
     if (typeof window === 'undefined') {
         return;
-    }
-
-    if (!localStorage.getItem('appearance')) {
-        localStorage.setItem('appearance', 'system');
-        setCookie('appearance', 'system');
     }
 
     currentAppearance = getStoredAppearance();

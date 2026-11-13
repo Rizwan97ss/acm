@@ -11,4 +11,11 @@ export type NavItem = {
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    /** Show the item only when the user holds at least one of these permissions. */
+    permissions?: string[];
+};
+
+export type NavGroup = {
+    title: string;
+    items: NavItem[];
 };

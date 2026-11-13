@@ -7,20 +7,39 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { usePermissions } from '@/hooks/use-permissions';
 import type { NavItem } from '@/types';
 
-export function NavMain({ items }: { items: NavItem[] }) {
-    const { isCurrentUrl } = useCurrentUrl();
+/**
+ * A labelled sidebar group. Items the user lacks permission for are hidden,
+ * and the group disappears entirely when nothing in it is visible.
+ */
+export function NavMain({
+    items,
+    label = 'Platform',
+}: {
+    items: NavItem[];
+    label?: string;
+}) {
+    const { isCurrentOrParentUrl } = useCurrentUrl();
+    const { canAny } = usePermissions();
+    const visible = items.filter(
+        (item) => !item.permissions || canAny(item.permissions),
+    );
+
+    if (visible.length === 0) {
+        return null;
+    }
 
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>Platform</SidebarGroupLabel>
+            <SidebarGroupLabel>{label}</SidebarGroupLabel>
             <SidebarMenu>
-                {items.map((item) => (
+                {visible.map((item) => (
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                             asChild
-                            isActive={isCurrentUrl(item.href)}
+                            isActive={isCurrentOrParentUrl(item.href)}
                             tooltip={{ children: item.title }}
                         >
                             <Link href={item.href} prefetch>
