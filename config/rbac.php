@@ -120,7 +120,7 @@ return [
             'permissions' => [
                 'timetables.view', 'attendance.view', 'grades.view', 'assignments.view', 'invoices.view',
                 'payments.view', 'announcements.view', 'events.view', 'messages.view',
-                'messages.create', 'documents.view',
+                'messages.create', 'documents.view', 'library.view',
             ],
         ],
         'accountant' => [

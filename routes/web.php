@@ -15,3 +15,5 @@ require __DIR__.'/academics.php';
 require __DIR__.'/people.php';
 require __DIR__.'/finance.php';
 require __DIR__.'/analytics.php';
+require __DIR__.'/communication.php';
+require __DIR__.'/library.php';

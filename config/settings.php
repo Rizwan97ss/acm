@@ -145,6 +145,35 @@ return [
             ],
         ],
 
+        'library' => [
+            'label' => 'Library',
+            'description' => 'Loan periods, limits and overdue fines.',
+            'settings' => [
+                'library.loan_days' => [
+                    'label' => 'Loan period (days)',
+                    'type' => 'integer',
+                    'default' => 14,
+                    'rules' => ['required', 'integer', 'min:1', 'max:120'],
+                    'scopes' => ['global', 'school'],
+                ],
+                'library.max_loans' => [
+                    'label' => 'Books per borrower',
+                    'type' => 'integer',
+                    'default' => 3,
+                    'rules' => ['required', 'integer', 'min:1', 'max:20'],
+                    'scopes' => ['global', 'school'],
+                ],
+                'library.fine_per_day' => [
+                    'label' => 'Overdue fine per day (in cents)',
+                    'type' => 'integer',
+                    'default' => 0,
+                    'rules' => ['required', 'integer', 'min:0', 'max:100000'],
+                    'scopes' => ['global', 'school'],
+                    'description' => 'Use 0 for no fines. 1000 = 10.00 in the school currency.',
+                ],
+            ],
+        ],
+
         'notifications' => [
             'label' => 'Notifications',
             'description' => 'Which channels and automatic alerts are enabled.',

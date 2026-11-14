@@ -16,6 +16,7 @@ export type Auth = {
     roles: string[];
     isSuperAdmin: boolean;
     isPortalUser: boolean;
+    unreadNotifications: number;
 };
 
 export type Passkey = {

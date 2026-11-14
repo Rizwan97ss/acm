@@ -8,6 +8,10 @@ import {
     HandCoins,
     Landmark,
     LineChart,
+    Megaphone,
+    Library,
+    BookMarked,
+    MessagesSquare,
     Download,
     Plane,
     ReceiptText,
@@ -47,6 +51,11 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { insights } from '@/routes/analytics';
+import { index as announcements } from '@/routes/communication/announcements';
+import { index as events } from '@/routes/communication/events';
+import { index as messages } from '@/routes/communication/messages';
+import { index as libraryBooks } from '@/routes/library/books';
+import { index as libraryLoans } from '@/routes/library/loans';
 import { index as reports } from '@/routes/reports';
 import { progress } from '@/routes/academics';
 import { overview as accounting } from '@/routes/finance/accounting';
@@ -258,6 +267,48 @@ function navGroups(singleInstitute: boolean): NavGroup[] {
                     icon: HandCoins,
                     permissions: ['payroll.view'],
                     audience: 'staff',
+                },
+            ],
+        },
+        {
+            title: 'Library',
+            tone: 'amber',
+            items: [
+                {
+                    title: 'Catalogue',
+                    href: libraryBooks(),
+                    icon: Library,
+                    permissions: ['library.view'],
+                },
+                {
+                    title: 'Loans',
+                    href: libraryLoans(),
+                    icon: BookMarked,
+                    permissions: ['library.view'],
+                },
+            ],
+        },
+        {
+            title: 'Communication',
+            tone: 'pink',
+            items: [
+                {
+                    title: 'Announcements',
+                    href: announcements(),
+                    icon: Megaphone,
+                    permissions: ['announcements.view'],
+                },
+                {
+                    title: 'Calendar',
+                    href: events(),
+                    icon: CalendarDays,
+                    permissions: ['events.view'],
+                },
+                {
+                    title: 'Messages',
+                    href: messages(),
+                    icon: MessagesSquare,
+                    permissions: ['messages.view'],
                 },
             ],
         },
