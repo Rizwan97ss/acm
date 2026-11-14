@@ -28,6 +28,7 @@ return [
         'roles' => ['label' => 'Roles & Permissions', 'group' => 'Administration', 'actions' => ['view', 'create', 'edit', 'delete']],
         'settings' => ['label' => 'Settings', 'group' => 'Administration', 'actions' => ['view', 'edit']],
         'audit_logs' => ['label' => 'Audit Logs', 'group' => 'Administration', 'actions' => ['view', 'export']],
+        'integrations' => ['label' => 'API & Webhooks', 'group' => 'Administration', 'actions' => ['view', 'create', 'edit', 'delete']],
 
         // Academics
         'academic_years' => ['label' => 'Academic Years', 'group' => 'Academics', 'actions' => $crud],

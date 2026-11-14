@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\SchoolController;
 use App\Http\Controllers\Admin\SchoolSwitchController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\WebhookController;
+use App\Http\Middleware\RequireSchoolContext;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
@@ -23,4 +25,13 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('audit-logs', [AuditLogController::class, 'index'])
         ->middleware('can:audit_logs.view')
         ->name('audit-logs.index');
+});
+
+Route::middleware(['auth', 'verified', RequireSchoolContext::class])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('webhooks', [WebhookController::class, 'index'])->name('webhooks.index');
+    Route::post('webhooks', [WebhookController::class, 'store'])->name('webhooks.store');
+    Route::put('webhooks/{webhook}', [WebhookController::class, 'update'])->name('webhooks.update');
+    Route::delete('webhooks/{webhook}', [WebhookController::class, 'destroy'])->name('webhooks.destroy');
+    Route::post('webhooks/{webhook}/rotate', [WebhookController::class, 'rotate'])->name('webhooks.rotate');
+    Route::post('webhooks/{webhook}/test', [WebhookController::class, 'test'])->middleware('throttle:10,1')->name('webhooks.test');
 });

@@ -4,12 +4,14 @@ namespace App\Services\Records;
 
 use App\Enums\CertificateStatus;
 use App\Enums\CertificateType;
+use App\Enums\WebhookEvent;
 use App\Models\Certificate;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use App\Services\People\ReferenceNumberGenerator;
 use App\Services\Tenancy\CurrentSchool;
+use App\Services\Webhooks\WebhookDispatcher;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -19,6 +21,7 @@ class CertificateService
         private ReferenceNumberGenerator $numbers,
         private CurrentSchool $currentSchool,
         private AuditLogger $audit,
+        private WebhookDispatcher $webhooks,
     ) {}
 
     /**
@@ -48,6 +51,13 @@ class CertificateService
 
         $certificate->forceFill(['status' => CertificateStatus::Issued, 'issued_on' => now()->toDateString(), 'issued_by' => $actor->id])->save();
         $this->audit->log('certificate.issued', $certificate);
+        $this->webhooks->dispatch($certificate->school_id, WebhookEvent::CertificateIssued, [
+            'certificate_id' => $certificate->id,
+            'serial_no' => $certificate->serial_no,
+            'type' => $certificate->type->value,
+            'student_id' => $certificate->student_id,
+            'issued_on' => $certificate->issued_on?->toDateString(),
+        ]);
     }
 
     public function revoke(Certificate $certificate, string $reason): void

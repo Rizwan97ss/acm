@@ -5,6 +5,7 @@ namespace App\Services\Finance;
 use App\Enums\EnrollmentStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\PaymentMethod;
+use App\Enums\WebhookEvent;
 use App\Models\AcademicYear;
 use App\Models\Enrollment;
 use App\Models\FeeConcession;
@@ -14,6 +15,7 @@ use App\Models\InvoiceBatch;
 use App\Models\Payment;
 use App\Models\User;
 use App\Services\People\ReferenceNumberGenerator;
+use App\Services\Webhooks\WebhookDispatcher;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -30,6 +32,7 @@ class BillingService
     public function __construct(
         private LedgerService $ledger,
         private ReferenceNumberGenerator $numbers,
+        private WebhookDispatcher $webhooks,
     ) {}
 
     /**
@@ -166,6 +169,17 @@ class BillingService
             ]);
 
             $this->applyPaid($locked, $locked->paid + $amount);
+
+            $this->webhooks->dispatch($locked->school_id, WebhookEvent::PaymentRecorded, [
+                'payment_id' => $payment->id,
+                'receipt_no' => $receiptNo,
+                'invoice_number' => $locked->number,
+                'student_id' => $locked->student_id,
+                'amount' => $amount,
+                'method' => $method->value,
+                'paid_on' => $paidOn->toDateString(),
+                'invoice_balance' => $locked->balance(),
+            ]);
 
             $this->ledger->post($locked->school_id, $paidOn, "Receipt {$receiptNo} for {$locked->number}", $payment, [
                 [$method->accountCode(), $amount, 0],

@@ -11,6 +11,7 @@ import {
     Megaphone,
     Library,
     Bus,
+    Webhook,
     Boxes,
     FolderOpen,
     BookMarked,
@@ -86,6 +87,7 @@ import { index as roles } from '@/routes/admin/roles';
 import { index as schools } from '@/routes/admin/schools';
 import { index as settings } from '@/routes/admin/settings';
 import { index as users } from '@/routes/admin/users';
+import { index as webhooks } from '@/routes/admin/webhooks';
 import { index as admissions } from '@/routes/people/admissions';
 import { index as guardians } from '@/routes/people/guardians';
 import { index as staff } from '@/routes/people/staff';
@@ -403,6 +405,12 @@ function navGroups(singleInstitute: boolean): NavGroup[] {
                     href: auditLogs(),
                     icon: History,
                     permissions: ['audit_logs.view'],
+                },
+                {
+                    title: 'Webhooks',
+                    href: webhooks(),
+                    icon: Webhook,
+                    permissions: ['integrations.view'],
                 },
             ],
         },

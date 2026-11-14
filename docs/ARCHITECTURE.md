@@ -273,7 +273,7 @@ Run `php artisan rbac:sync` on every deploy, after migrations.
 | 5 ✅  | Fees, invoices, payments, expenses, double-entry accounting, payroll, leave                                               |
 | 6 ✅  | Python analytics service, reports and exports, forecasting                                                                |
 | 7 ✅  | Library, transport, inventory, communication (announcements, events, messages, notifications), documents and certificates |
-| 8     | Public API (`/api/v1`, Sanctum), mobile-ready endpoints, webhooks                                                         |
+| 8 🚧  | ✅ Webhooks · waiting for Sanctum approval: public API (`/api/v1`), personal access tokens, mobile-ready endpoints |
 
 ### Phase 2 notes
 
@@ -328,4 +328,15 @@ Run `php artisan rbac:sync` on every deploy, after migrations.
 - **Documents:** uploads (PDF, Office, text, CSV, PNG/JPG, at most 10 MB, checked by both extension and detected MIME type) are stored on the private `local` disk under random names. They are always served through `DocumentController@download` as an `application/octet-stream` attachment with `nosniff`, and only to people in the document's audience. Other people get a 404.
 - **Certificates:** a draft is prefilled from the student's record (bonafide, character, transfer, achievement) and numbered `CRT-YYYY-NNNNN`. Its wording is editable until someone with `certificates.approve` issues it. Issued certificates can be revoked with a reason but never edited or deleted. The printable A4 page (`standalone/certificate`) watermarks drafts and revoked certificates and carries a public verification link, `/verify/{32-char code}` (rate limited). That link shows only what is printed on the certificate: title, serial number, name, school and date. Students and guardians see and print only their own issued certificates.
 - **Portal permissions:** the student and parent roles gained `transport.view` and `certificates.view`, and parents also gained `library.view`. Run `php artisan rbac:sync` after deploying.
+
+### Phase 8 notes (in progress)
+
+- **Webhooks** (Administration → Webhooks, `integrations.*` permissions): each school registers HTTPS endpoints subscribed to `student.created`, `payment.recorded`, `announcement.published` and `certificate.issued`, plus a manual `ping` test.
+- **Signing secret:** `whsec_…`, encrypted at rest. It is shown once, on creation or rotation.
+- **Delivery:** a `WebhookDelivery` row is created and a queued `DeliverWebhook` job is dispatched `afterCommit`, so a rolled-back change is never announced.
+- **Signature:** `X-Webhook-Signature: sha256=HMAC(secret, "{X-Webhook-Timestamp}.{raw body}")`, plus `X-Webhook-Id` (unique, for de-duplication) and `X-Webhook-Event`.
+- **Payloads:** IDs, numbers and dates only; no names or encrypted fields.
+- **SSRF protection** (`WebhookUrlGuard`): HTTPS only, no credentials in the URL, and every resolved address must be public. The connection is pinned to the checked address (curl `--resolve`), so DNS rebinding cannot redirect it, and redirects are not followed. `WEBHOOKS_ALLOW_PRIVATE_TARGETS=true` relaxes this for local testing only.
+- **Retries:** the backoff is 30 s, 2 min, 10 min, then 1 h. An endpoint is disabled after 20 consecutive failed deliveries and the event is reported. The last 30 deliveries are listed with their status codes. Webhooks need a queue worker (`php artisan queue:work`).
+- **Public API:** planned with Laravel Sanctum personal access tokens. A request must be allowed by both the token's abilities and the user's RBAC permissions. API resources go under `/api/v1`, and portal users are scoped through `PortalScope`. Installing Sanctum needs the maintainer's approval (it is a new dependency).
 

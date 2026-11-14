@@ -2,9 +2,11 @@
 
 namespace App\Services\People;
 
+use App\Enums\WebhookEvent;
 use App\Models\AcademicYear;
 use App\Models\Section;
 use App\Models\Student;
+use App\Services\Webhooks\WebhookDispatcher;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
@@ -13,6 +15,7 @@ class StudentService
     public function __construct(
         private ReferenceNumberGenerator $numbers,
         private EnrollmentService $enrollments,
+        private WebhookDispatcher $webhooks,
     ) {}
 
     /**
@@ -38,6 +41,8 @@ class StudentService
                     Section::query()->findOrFail($enrollment['section_id']),
                 );
             }
+
+            $this->webhooks->dispatch($schoolId, WebhookEvent::StudentCreated, ['student_id' => $student->id, 'admission_no' => $student->admission_no, 'status' => $student->status->value]);
 
             return $student;
         });
