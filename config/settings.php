@@ -171,6 +171,13 @@ return [
                     'scopes' => ['global', 'school'],
                     'description' => 'Use 0 for no fines. 1000 = 10.00 in the school currency.',
                 ],
+                'library.bill_fines' => [
+                    'label' => 'Bill student fines',
+                    'type' => 'boolean',
+                    'default' => true,
+                    'scopes' => ['global', 'school'],
+                    'description' => 'Add overdue fines for students to a fee invoice when the book is returned.',
+                ],
             ],
         ],
 

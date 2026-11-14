@@ -99,3 +99,14 @@ test('audit logs are restricted to the viewer\'s school', function () {
 test('audit logs require the audit_logs.view permission', function () {
     $this->actingAs(userWithPermissions(['users.view']))->get(route('admin.audit-logs.index'))->assertForbidden();
 });
+
+test('responses carry browser hardening headers, with HSTS only over https', function () {
+    $this->get(route('login'))
+        ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
+        ->assertHeader('X-Content-Type-Options', 'nosniff')
+        ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+        ->assertHeaderMissing('Strict-Transport-Security');
+
+    $this->get(str_replace('http://', 'https://', route('login')))
+        ->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+});

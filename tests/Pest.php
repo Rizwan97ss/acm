@@ -13,6 +13,8 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Services\Rbac\PermissionRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /*
@@ -169,4 +171,16 @@ function communitySchool(): array
     $manager = userWithPermissions(['announcements.view', 'announcements.create', 'announcements.edit', 'announcements.delete', 'announcements.approve', 'events.view', 'events.create', 'events.edit', 'events.delete', 'messages.view', 'messages.create'], $school);
 
     return [...$setup, 'studentUser' => $studentUser, 'guardianUser' => $guardianUser, 'otherClass' => $otherClass, 'otherGuardianUser' => $otherGuardianUser, 'manager' => $manager];
+}
+
+/**
+ * Points a log channel at a temporary file and returns its path.
+ */
+function captureLogChannel(string $channel): string
+{
+    $path = storage_path('framework/testing/logs/'.Str::uuid().'.log');
+    config(["logging.channels.{$channel}" => ['driver' => 'single', 'path' => $path, 'level' => 'debug']]);
+    test()->beforeApplicationDestroyed(fn () => File::delete($path));
+
+    return $path;
 }

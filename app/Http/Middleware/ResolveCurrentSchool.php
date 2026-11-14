@@ -45,6 +45,10 @@ class ResolveCurrentSchool
      */
     private function switchedSchool(Request $request): ?School
     {
+        if (! $request->hasSession()) {
+            return null;
+        }
+
         $schoolId = $request->session()->get(self::SESSION_KEY);
 
         if (! is_int($schoolId) || ! $request->user()->hasPermission('schools.view')) {

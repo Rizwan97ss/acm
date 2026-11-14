@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    Activity,
     Award,
     Banknote,
     CalendarX,
@@ -82,6 +83,7 @@ import { index as classes } from '@/routes/academics/classes';
 import { edit as periods } from '@/routes/academics/periods';
 import { index as subjects } from '@/routes/academics/subjects';
 import { index as timetable } from '@/routes/academics/timetable';
+import { index as activityLogs } from '@/routes/admin/activity-logs';
 import { index as auditLogs } from '@/routes/admin/audit-logs';
 import { index as roles } from '@/routes/admin/roles';
 import { index as schools } from '@/routes/admin/schools';
@@ -404,6 +406,12 @@ function navGroups(singleInstitute: boolean): NavGroup[] {
                     title: 'Audit log',
                     href: auditLogs(),
                     icon: History,
+                    permissions: ['audit_logs.view'],
+                },
+                {
+                    title: 'Activity log',
+                    href: activityLogs(),
+                    icon: Activity,
                     permissions: ['audit_logs.view'],
                 },
                 {

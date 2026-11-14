@@ -40,7 +40,7 @@ class LoanController extends Controller
         $status = $filters['status'] ?? 'open';
 
         $loans = LibraryLoan::query()
-            ->with(['book:id,title,author', 'student:id,admission_no,first_name,last_name', 'employee:id,employee_no,first_name,last_name'])
+            ->with(['book:id,title,author', 'student:id,admission_no,first_name,last_name', 'employee:id,employee_no,first_name,last_name', 'invoice:id,number'])
             ->when(! $manages, fn (Builder $query) => $this->limitToOwn($query, $user))
             ->when($status === 'open', fn (Builder $query) => $query->open())
             ->when($status === 'overdue', fn (Builder $query) => $query->overdue())
@@ -73,6 +73,7 @@ class LoanController extends Controller
                     'returned_on' => $loan->returned_on?->toDateString(),
                     'overdue' => $loan->isOverdue(),
                     'fine' => $loan->fine,
+                    'invoice' => $loan->invoice?->number,
                 ])->values(),
                 'meta' => [
                     'current_page' => $loans->currentPage(),
@@ -117,7 +118,12 @@ class LoanController extends Controller
         Gate::authorize('library.edit');
 
         $loan = $this->library->return($loan, $request->user());
-        Inertia::flash('toast', ['type' => 'success', 'message' => $loan->fine > 0 ? __('Returned late. A fine was recorded.') : __('Book returned.')]);
+        $message = match (true) {
+            $loan->fine <= 0 => __('Book returned.'),
+            $loan->invoice_id !== null => __('Returned late. The fine was added to the student’s fees.'),
+            default => __('Returned late. A fine was recorded.'),
+        };
+        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
 
         return back();
     }

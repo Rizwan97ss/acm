@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
+import { index as apiTokens } from '@/routes/api-tokens';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editPreferences } from '@/routes/preferences';
 import { edit } from '@/routes/profile';
@@ -30,6 +31,11 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Preferences',
         href: editPreferences(),
+        icon: null,
+    },
+    {
+        title: 'API tokens',
+        href: apiTokens(),
         icon: null,
     },
 ];

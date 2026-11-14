@@ -4,14 +4,18 @@ namespace App\Services\Library;
 
 use App\Enums\EmployeeStatus;
 use App\Enums\StudentStatus;
+use App\Models\AcademicYear;
 use App\Models\Employee;
 use App\Models\LibraryBook;
 use App\Models\LibraryLoan;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\Finance\BillingService;
+use App\Services\Finance\LedgerService;
 use App\Services\Settings\SettingsService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -20,7 +24,12 @@ use Illuminate\Validation\ValidationException;
  */
 class LibraryService
 {
-    public function __construct(private SettingsService $settings) {}
+    private const int FINE_DUE_DAYS = 14;
+
+    public function __construct(
+        private SettingsService $settings,
+        private BillingService $billing,
+    ) {}
 
     /**
      * Finds an active student (admission number) or employee (staff number).
@@ -81,11 +90,12 @@ class LibraryService
     }
 
     /**
-     * Records the return and any overdue fine (days late × the fine-per-day setting).
+     * Records the return and any overdue fine (days late × the fine-per-day setting). A
+     * student's fine is then billed on a fee invoice when the school bills fines.
      */
     public function return(LibraryLoan $loan, User $actor): LibraryLoan
     {
-        return DB::transaction(function () use ($loan, $actor): LibraryLoan {
+        $loan = DB::transaction(function () use ($loan, $actor): LibraryLoan {
             $book = LibraryBook::query()->lockForUpdate()->findOrFail($loan->library_book_id);
             $loan = LibraryLoan::query()->lockForUpdate()->findOrFail($loan->id);
 
@@ -106,6 +116,52 @@ class LibraryService
 
             return $loan;
         });
+
+        // Invoice numbers are allocated under a lock outside the return transaction.
+        $this->billFine($loan, $actor);
+
+        return $loan;
+    }
+
+    /**
+     * Bills a returned student loan's fine on its own fee invoice (credited to other
+     * income). Staff fines, fines already billed, and schools without a current year or
+     * with billing turned off are left as recorded on the loan.
+     */
+    public function billFine(LibraryLoan $loan, User $actor): void
+    {
+        if ($loan->fine <= 0 || $loan->student_id === null || $loan->invoice_id !== null || ! $this->settings->current('library.bill_fines')) {
+            return;
+        }
+
+        $year = AcademicYear::query()->current()->first();
+
+        if ($year === null) {
+            Log::warning('Library fine not billed: no current academic year.', ['loan_id' => $loan->id, 'school_id' => $loan->school_id]);
+
+            return;
+        }
+
+        $loan->loadMissing('book:id,title');
+        $today = CarbonImmutable::today();
+
+        $invoice = $this->billing->createInvoice(
+            $actor,
+            $year,
+            $loan->student_id,
+            __('Library fine'),
+            $today,
+            $today->addDays(self::FINE_DUE_DAYS),
+            [[
+                'fee_item_id' => null,
+                'description' => mb_substr(__('Overdue: :title', ['title' => $loan->book->title]), 0, 150),
+                'amount' => $loan->fine,
+                'discount' => 0,
+            ]],
+            incomeAccount: LedgerService::OTHER_INCOME,
+        );
+
+        $loan->forceFill(['invoice_id' => $invoice->id])->save();
     }
 
     /**

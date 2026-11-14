@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SchoolController;
@@ -25,6 +26,10 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('audit-logs', [AuditLogController::class, 'index'])
         ->middleware('can:audit_logs.view')
         ->name('audit-logs.index');
+
+    Route::get('activity-logs', [ActivityLogController::class, 'index'])
+        ->middleware('can:audit_logs.view')
+        ->name('activity-logs.index');
 });
 
 Route::middleware(['auth', 'verified', RequireSchoolContext::class])->prefix('admin')->name('admin.')->group(function () {

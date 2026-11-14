@@ -8,10 +8,14 @@ use App\Services\Settings\SettingsService;
 use App\Services\Tenancy\CurrentSchool;
 use App\Services\Tenancy\Tenancy;
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
@@ -33,6 +37,19 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureAuthorization();
+        $this->configureApiRateLimiting();
+    }
+
+    /**
+     * API requests are limited per token owner; token sign-in per email and address.
+     */
+    protected function configureApiRateLimiting(): void
+    {
+        RateLimiter::for('api', fn (Request $request): Limit => Limit::perMinute(120)->by($request->user()?->id ?: $request->ip()));
+
+        RateLimiter::for('api-token', fn (Request $request): Limit => Limit::perMinute(5)->by(
+            Str::transliterate(Str::lower((string) $request->input('email'))).'|'.$request->ip(),
+        ));
     }
 
     /**

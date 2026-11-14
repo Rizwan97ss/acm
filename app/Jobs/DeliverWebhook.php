@@ -8,6 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Throwable;
 
@@ -99,6 +100,12 @@ class DeliverWebhook implements ShouldQueue
     {
         $delivery->forceFill(['response_status' => $status, 'error' => mb_substr($error, 0, 255)])->save();
 
+        Log::warning('Webhook delivery attempt failed.', [
+            ...$this->logContext($delivery),
+            'response_status' => $status,
+            'error' => mb_substr($error, 0, 255),
+        ]);
+
         if ($this->attempts() < $this->tries()) {
             $this->release($this->backoff()[$this->attempts() - 1] ?? 60);
 
@@ -116,6 +123,13 @@ class DeliverWebhook implements ShouldQueue
             'error' => $error !== null ? mb_substr($error, 0, 255) : null,
             'delivered_at' => $status === 'succeeded' ? now() : null,
         ])->save();
+
+        $level = $status === 'succeeded' ? 'info' : 'error';
+        Log::log($level, $status === 'succeeded' ? 'Webhook delivered.' : 'Webhook delivery failed permanently.', [
+            ...$this->logContext($delivery),
+            'response_status' => $responseStatus,
+            'error' => $error !== null ? mb_substr($error, 0, 255) : null,
+        ]);
 
         $endpoint = $delivery->endpoint()->withoutGlobalScopes()->first();
 
@@ -138,5 +152,22 @@ class DeliverWebhook implements ShouldQueue
         if (! $endpoint->is_active && $failures >= (int) config('webhooks.disable_after_failures', 20)) {
             report(new RuntimeException("Webhook endpoint {$endpoint->id} disabled after {$failures} failed deliveries."));
         }
+    }
+
+    /**
+     * Identifiers only: payloads and signing secrets are never logged.
+     *
+     * @return array{delivery_id: int, delivery_uuid: string, endpoint_id: int, school_id: int, event: string, attempt: int}
+     */
+    private function logContext(WebhookDelivery $delivery): array
+    {
+        return [
+            'delivery_id' => $delivery->id,
+            'delivery_uuid' => $delivery->uuid,
+            'endpoint_id' => $delivery->webhook_endpoint_id,
+            'school_id' => $delivery->school_id,
+            'event' => $delivery->event,
+            'attempt' => $delivery->attempts,
+        ];
     }
 }

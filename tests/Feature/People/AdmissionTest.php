@@ -1,10 +1,15 @@
 <?php
 
 use App\Enums\AdmissionStatus;
+use App\Jobs\DeliverWebhook;
 use App\Models\AdmissionApplication;
 use App\Models\Guardian;
 use App\Models\Section;
 use App\Models\Student;
+use App\Models\WebhookDelivery;
+use App\Models\WebhookEndpoint;
+use App\Services\People\AdmissionService;
+use Illuminate\Support\Facades\Queue;
 
 /**
  * @return array<string, mixed>
@@ -59,6 +64,23 @@ test('an approved application is enrolled as a student with guardian and enrollm
     $this->assertDatabaseHas('enrollments', ['student_id' => $student->id, 'section_id' => $setup['section']->id, 'academic_year_id' => $setup['year']->id]);
     $guardian = $student->guardians()->sole();
     expect($guardian->first_name)->toBe('Nadia')->and((bool) $guardian->pivot->is_primary)->toBeTrue();
+});
+
+test('enrolling an application announces the new student to webhooks', function () {
+    $setup = academicSchool();
+    Queue::fake();
+    WebhookEndpoint::query()->create(['school_id' => $setup['school']->id, 'url' => 'https://93.184.216.34/hook', 'secret' => 'whsec_test', 'events' => ['student.created']]);
+    $application = AdmissionApplication::factory()->create([
+        'school_id' => $setup['school']->id, 'academic_year_id' => $setup['year']->id, 'school_class_id' => $setup['section']->school_class_id,
+        'status' => AdmissionStatus::Approved,
+    ]);
+
+    $student = app(AdmissionService::class)->enroll($application, $setup['section'], null);
+
+    $delivery = WebhookDelivery::query()->withoutGlobalScopes()->sole();
+    expect($delivery->event)->toBe('student.created')
+        ->and($delivery->payload['data']['student_id'])->toBe($student->id);
+    Queue::assertPushed(DeliverWebhook::class, 1);
 });
 
 test('siblings share the existing guardian matched by phone', function () {

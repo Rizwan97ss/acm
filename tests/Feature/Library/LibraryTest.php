@@ -2,9 +2,13 @@
 
 use App\Enums\SettingScope;
 use App\Models\Employee;
+use App\Models\Invoice;
+use App\Models\JournalLine;
 use App\Models\LibraryBook;
 use App\Models\LibraryLoan;
 use App\Models\Student;
+use App\Services\Finance\LedgerService;
+use App\Services\Library\LibraryService;
 use App\Services\Settings\SettingsService;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Testing\TestResponse;
@@ -92,6 +96,42 @@ test('late returns record a fine and free the copy', function () {
 
     expect($loan->fresh()->fine)->toBe(1500)
         ->and($setup['book']->fresh()->copies_available)->toBe(1);
+});
+
+test('a student\'s fine is billed once on a fee invoice credited to other income', function () {
+    $setup = librarySchool();
+    app(SettingsService::class)->put(SettingScope::School, $setup['school']->id, ['library.fine_per_day' => 500]);
+    issueBook($setup, $setup['book'], $setup['student']->admission_no);
+    $loan = LibraryLoan::query()->sole();
+    Date::setTestNow(now()->addDays(17));
+
+    $this->actingAs($setup['librarian'])->post(route('library.loans.return', $loan))->assertSessionHasNoErrors();
+    app(LibraryService::class)->billFine($loan->fresh(), $setup['librarian']);
+
+    $invoice = Invoice::query()->withoutGlobalScopes()->sole();
+    expect($loan->fresh()->invoice_id)->toBe($invoice->id)
+        ->and($invoice->student_id)->toBe($setup['student']->id)
+        ->and($invoice->total)->toBe(1500)
+        ->and($invoice->lines()->sole()->description)->toBe('Overdue: Matilda')
+        ->and(JournalLine::query()->withoutGlobalScopes()->whereHas('account', fn ($query) => $query->where('code', LedgerService::OTHER_INCOME))->sum('credit'))->toBe(1500);
+});
+
+test('fines are not billed for staff or when billing is turned off', function () {
+    $setup = librarySchool();
+    app(SettingsService::class)->put(SettingScope::School, $setup['school']->id, ['library.fine_per_day' => 500, 'library.bill_fines' => false]);
+    $second = LibraryBook::factory()->create(['school_id' => $setup['school']->id]);
+    issueBook($setup, $setup['book'], $setup['student']->admission_no);
+    issueBook($setup, $second, Employee::factory()->create(['school_id' => $setup['school']->id])->employee_no);
+    Date::setTestNow(now()->addDays(17));
+
+    foreach (LibraryLoan::query()->get() as $loan) {
+        $this->actingAs($setup['librarian'])->post(route('library.loans.return', $loan))->assertSessionHasNoErrors();
+    }
+    app(SettingsService::class)->put(SettingScope::School, $setup['school']->id, ['library.bill_fines' => true]);
+    app(LibraryService::class)->billFine(LibraryLoan::query()->whereNotNull('employee_id')->sole(), $setup['librarian']);
+
+    expect(Invoice::query()->withoutGlobalScopes()->count())->toBe(0)
+        ->and(LibraryLoan::query()->where('fine', '>', 0)->count())->toBe(2);
 });
 
 test('copies cannot be reduced below the number on loan', function () {

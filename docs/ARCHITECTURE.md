@@ -44,7 +44,7 @@ A versioned public API (`/api/v1`, for mobile apps or third-party integrations) 
 | Multi-school tenancy | `schools` with one level of branches; users are school-bound or platform-level; platform users switch the active school context.                                                                                                                                   |
 | RBAC (custom)        | Permission registry, system and school roles, role inheritance, per-user cached resolution, gate integration, privilege-escalation guards.                                                                                                                         |
 | Settings             | Registry-driven settings resolved user → school → global → default, with generic UI and validation.                                                                                                                                                                |
-| Audit log            | Model changes, role and permission changes, settings changes and authentication events, with sensitive values masked.                                                                                                                                              |
+| Audit log            | Model changes, role and permission changes, settings changes and authentication events, with sensitive values masked. Every entry is also written via `Log::channel('audit')` to `storage/logs/audit-YYYY-MM-DD.log` (kept `LOG_AUDIT_DAYS`, default 90). Every controller action (web and API) is logged by the `LogActivity` middleware via `Log::channel('activity')` to `storage/logs/activity-YYYY-MM-DD.log` (user, action, record IDs, submitted field names but never values, status, duration; kept `LOG_ACTIVITY_DAYS`, default 30). Operational failures (webhooks, analytics) go to the default log channel. |
 | Field encryption     | Laravel `encrypted` cast plus HMAC blind indexes for exact-match search (`users.phone`).                                                                                                                                                                           |
 | Dashboard            | Permission-aware widget registry with deferred loading.                                                                                                                                                                                                            |
 | Admin UI             | Users, roles (permission matrix), schools (logo upload), settings, audit log, personal preferences.                                                                                                                                                                |
@@ -273,7 +273,7 @@ Run `php artisan rbac:sync` on every deploy, after migrations.
 | 5 ✅  | Fees, invoices, payments, expenses, double-entry accounting, payroll, leave                                               |
 | 6 ✅  | Python analytics service, reports and exports, forecasting                                                                |
 | 7 ✅  | Library, transport, inventory, communication (announcements, events, messages, notifications), documents and certificates |
-| 8 🚧  | ✅ Webhooks · waiting for Sanctum approval: public API (`/api/v1`), personal access tokens, mobile-ready endpoints |
+| 8 ✅  | Webhooks, public API (`/api/v1`) with Sanctum tokens, mobile sign-in, API tokens settings page |
 
 ### Phase 2 notes
 
@@ -329,7 +329,7 @@ Run `php artisan rbac:sync` on every deploy, after migrations.
 - **Certificates:** a draft is prefilled from the student's record (bonafide, character, transfer, achievement) and numbered `CRT-YYYY-NNNNN`. Its wording is editable until someone with `certificates.approve` issues it. Issued certificates can be revoked with a reason but never edited or deleted. The printable A4 page (`standalone/certificate`) watermarks drafts and revoked certificates and carries a public verification link, `/verify/{32-char code}` (rate limited). That link shows only what is printed on the certificate: title, serial number, name, school and date. Students and guardians see and print only their own issued certificates.
 - **Portal permissions:** the student and parent roles gained `transport.view` and `certificates.view`, and parents also gained `library.view`. Run `php artisan rbac:sync` after deploying.
 
-### Phase 8 notes (in progress)
+### Phase 8 notes
 
 - **Webhooks** (Administration → Webhooks, `integrations.*` permissions): each school registers HTTPS endpoints subscribed to `student.created`, `payment.recorded`, `announcement.published` and `certificate.issued`, plus a manual `ping` test.
 - **Signing secret:** `whsec_…`, encrypted at rest. It is shown once, on creation or rotation.
@@ -338,5 +338,20 @@ Run `php artisan rbac:sync` on every deploy, after migrations.
 - **Payloads:** IDs, numbers and dates only; no names or encrypted fields.
 - **SSRF protection** (`WebhookUrlGuard`): HTTPS only, no credentials in the URL, and every resolved address must be public. The connection is pinned to the checked address (curl `--resolve`), so DNS rebinding cannot redirect it, and redirects are not followed. `WEBHOOKS_ALLOW_PRIVATE_TARGETS=true` relaxes this for local testing only.
 - **Retries:** the backoff is 30 s, 2 min, 10 min, then 1 h. An endpoint is disabled after 20 consecutive failed deliveries and the event is reported. The last 30 deliveries are listed with their status codes. Webhooks need a queue worker (`php artisan queue:work`).
-- **Public API:** planned with Laravel Sanctum personal access tokens. A request must be allowed by both the token's abilities and the user's RBAC permissions. API resources go under `/api/v1`, and portal users are scoped through `PortalScope`. Installing Sanctum needs the maintainer's approval (it is a new dependency).
+- **Public API** (`/api/v1`, Laravel Sanctum bearer tokens):
+  - **Mobile sign-in:** `POST /api/v1/auth/token` (`email`, `password`, `device_name`, `code`) returns a 30-day token with all scopes. Accounts with 2FA must send a TOTP or recovery code (recovery codes are single use); deactivated, unverified, or 2FA-required-but-not-enrolled accounts are refused. Limited to 5 attempts per minute per email and address. `DELETE /api/v1/auth/token` revokes the token in use.
+  - **Personal tokens:** Settings → API tokens (password confirmation required). Scopes: `people:read`, `academics:read`, `finance:read`, `communication:read`; expiry 30/90/365 days or never. The plain token is shown once; only its hash is stored. Issuing and revoking are audited.
+  - **Authorization:** a request needs the token scope for the endpoint group **and** the owner's RBAC permission. Students and guardians only reach their own (or their children's) records through `PortalScope`; other students return 404. Tokens of deactivated accounts or schools are refused (`EnsureApiAccountActive`). 120 requests per minute per user.
+  - **Endpoints:** `GET me`, `students`, `students/{id}`, `students/{id}/attendance` (with yearly summary), `timetable`, `invoices`, `invoices/{id}`, `announcements` (live and addressed to the viewer), `events` (`from`/`to`, default next 30 days), `notifications`; `POST notifications/{id}/read`, `notifications/read-all`. Encrypted personal fields (national ID, medical notes, address) are never returned. Amounts are integer cents.
+
+
+  5. Before going live, set these on the server:
+
+APP_ENV=production, APP_DEBUG=false, SESSION_SECURE_COOKIE=true, SESSION_ENCRYPT=true
+A queue worker running all the time (php artisan queue:work), or webhooks and notifications won't be sent
+The scheduler (php artisan schedule:run every minute)
+Hosting for the Python analytics service, with its shared secret set
+npm run build, then php artisan migrate --force, php artisan rbac:sync and the config, route and view cache commands
+Database backups, and a mail service for password resets and invites
+6. Admin account: if your account still has no roles, run php artisan rbac:grant-super-admin admin@gmail.com.
 

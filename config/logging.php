@@ -73,6 +73,22 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'audit' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/audit.log'),
+            'level' => 'info',
+            'max_files' => env('LOG_AUDIT_DAYS', 90),
+            'replace_placeholders' => true,
+        ],
+
+        'activity' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/activity.log'),
+            'level' => env('LOG_ACTIVITY_LEVEL', 'info'),
+            'max_files' => env('LOG_ACTIVITY_DAYS', 30),
+            'replace_placeholders' => true,
+        ],
+
         'monthly' => [
             'driver' => 'monthly',
             'path' => storage_path('logs/laravel.log'),

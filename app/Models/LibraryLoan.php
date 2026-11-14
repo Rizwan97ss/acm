@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property CarbonImmutable $due_on
  * @property CarbonImmutable|null $returned_on
  * @property int $fine
+ * @property int|null $invoice_id
  * @property int|null $issued_by
  * @property int|null $received_by
  * @property CarbonImmutable|null $created_at
@@ -88,5 +89,15 @@ class LibraryLoan extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    /**
+     * The fee invoice a student's overdue fine was billed on.
+     *
+     * @return BelongsTo<Invoice, $this>
+     */
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class);
     }
 }

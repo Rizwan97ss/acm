@@ -4,11 +4,13 @@ namespace App\Services\People;
 
 use App\Enums\AdmissionStatus;
 use App\Enums\StudentStatus;
+use App\Enums\WebhookEvent;
 use App\Models\AdmissionApplication;
 use App\Models\Guardian;
 use App\Models\Section;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\Webhooks\WebhookDispatcher;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -22,6 +24,7 @@ class AdmissionService
         private ReferenceNumberGenerator $numbers,
         private EnrollmentService $enrollments,
         private GuardianService $guardians,
+        private WebhookDispatcher $webhooks,
     ) {}
 
     /**
@@ -85,6 +88,13 @@ class AdmissionService
             $this->enrollments->enroll($student, $application->academicYear, $section);
 
             $application->forceFill(['status' => AdmissionStatus::Enrolled, 'student_id' => $student->id])->save();
+
+            $this->webhooks->dispatch($application->school_id, WebhookEvent::StudentCreated, [
+                'student_id' => $student->id,
+                'admission_no' => $student->admission_no,
+                'status' => $student->status->value,
+                'admission_application_id' => $application->id,
+            ]);
 
             return $student;
         });

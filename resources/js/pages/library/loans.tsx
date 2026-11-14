@@ -36,6 +36,7 @@ type Loan = {
     returned_on: string | null;
     overdue: boolean;
     fine: number;
+    invoice: string | null;
 };
 
 type Props = {
@@ -342,6 +343,8 @@ export default function Loans({
                                                 {format.date(loan.returned_on)}
                                                 {loan.fine > 0 &&
                                                     ` · fine ${money.format(loan.fine)}`}
+                                                {loan.invoice &&
+                                                    ` (${loan.invoice})`}
                                             </TonePill>
                                         ) : loan.overdue ? (
                                             <TonePill tone="danger">

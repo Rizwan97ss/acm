@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\ApiTokenController;
 use App\Http\Controllers\Settings\PreferencesController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
@@ -28,6 +29,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('settings/preferences', [PreferencesController::class, 'edit'])->name('preferences.edit');
     Route::put('settings/preferences/{group}', [PreferencesController::class, 'update'])->name('preferences.update');
+
+    Route::get('settings/api-tokens', [ApiTokenController::class, 'index'])
+        ->middleware(RequirePassword::class)
+        ->name('api-tokens.index');
+    Route::post('settings/api-tokens', [ApiTokenController::class, 'store'])
+        ->middleware([RequirePassword::class, 'throttle:10,1'])
+        ->name('api-tokens.store');
+    Route::delete('settings/api-tokens/{token}', [ApiTokenController::class, 'destroy'])->name('api-tokens.destroy');
 });
 
 Route::get('.well-known/passkey-endpoints', function () {

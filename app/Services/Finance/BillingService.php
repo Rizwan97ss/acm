@@ -103,13 +103,14 @@ class BillingService
 
     /**
      * @param  list<array{fee_item_id: int|null, description: string, amount: int, discount: int}>  $lines
+     * @param  string  $incomeAccount  Ledger account credited with the invoice total (fees by default).
      */
-    public function createInvoice(User $actor, AcademicYear $year, int $studentId, string $title, CarbonImmutable $issuedOn, CarbonImmutable $dueOn, array $lines, ?int $batchId = null): Invoice
+    public function createInvoice(User $actor, AcademicYear $year, int $studentId, string $title, CarbonImmutable $issuedOn, CarbonImmutable $dueOn, array $lines, ?int $batchId = null, string $incomeAccount = LedgerService::FEE_INCOME): Invoice
     {
         $subtotal = array_sum(array_column($lines, 'amount'));
         $discount = array_sum(array_column($lines, 'discount'));
 
-        return $this->numbers->withNext('invoice', $year->school_id, fn (string $number): Invoice => DB::transaction(function () use ($actor, $year, $studentId, $title, $issuedOn, $dueOn, $lines, $batchId, $subtotal, $discount, $number): Invoice {
+        return $this->numbers->withNext('invoice', $year->school_id, fn (string $number): Invoice => DB::transaction(function () use ($actor, $year, $studentId, $title, $issuedOn, $dueOn, $lines, $batchId, $subtotal, $discount, $number, $incomeAccount): Invoice {
             $invoice = new Invoice([
                 'school_id' => $year->school_id,
                 'student_id' => $studentId,
@@ -130,7 +131,7 @@ class BillingService
             if ($invoice->total > 0) {
                 $this->ledger->post($invoice->school_id, $issuedOn, "Invoice {$invoice->number}", $invoice, [
                     [LedgerService::FEES_RECEIVABLE, $invoice->total, 0],
-                    [LedgerService::FEE_INCOME, 0, $invoice->total],
+                    [$incomeAccount, 0, $invoice->total],
                 ], $actor);
             }
 

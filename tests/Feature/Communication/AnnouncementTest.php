@@ -40,6 +40,19 @@ test('publishing notifies only the targeted audience', function () {
     Notification::assertNotSentTo([$setup['otherGuardianUser'], $setup['studentUser'], $setup['classTeacher'], $setup['manager']], AnnouncementPublished::class);
 });
 
+test('accounts without a role are not treated as staff', function () {
+    Notification::fake();
+    $setup = communitySchool();
+    $stranger = User::factory()->forSchool($setup['school'])->create();
+
+    $this->actingAs($setup['manager'])->post(route('communication.announcements.store'), [
+        'title' => 'Staff meeting', 'body' => 'Salary review at 3pm.', 'audience' => 'staff', 'publish' => true,
+    ]);
+
+    Notification::assertSentTo($setup['classTeacher'], AnnouncementPublished::class);
+    Notification::assertNotSentTo($stranger, AnnouncementPublished::class);
+});
+
 test('drafts are saved without notifying anyone when the author cannot approve', function () {
     Notification::fake();
     $setup = communitySchool();

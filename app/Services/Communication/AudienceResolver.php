@@ -53,7 +53,7 @@ class AudienceResolver
             ->where(function (Builder $query) use ($audience, $inClass): void {
                 if (in_array($audience, [Audience::Everyone, Audience::Staff], true)) {
                     $query->orWhereHas('employee')
-                        ->orWhere(fn (Builder $query) => $query->whereDoesntHave('student')->whereDoesntHave('guardian'));
+                        ->orWhere(fn (Builder $query) => $query->whereDoesntHave('student')->whereDoesntHave('guardian')->whereHas('roles'));
                 }
 
                 if (in_array($audience, [Audience::Everyone, Audience::Students], true)) {
@@ -73,7 +73,9 @@ class AudienceResolver
     {
         $audiences = [];
 
-        if ($user->employee()->exists() || ! $this->portalScope->isPortalUser($user)) {
+        // Staff are employees, or non-portal accounts given a role. A self-registered account
+        // with no role is nobody yet and must not see staff-only communication.
+        if ($user->employee()->exists() || (! $this->portalScope->isPortalUser($user) && $user->roles()->exists())) {
             $audiences[] = Audience::Staff;
         }
 
