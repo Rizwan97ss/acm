@@ -17,6 +17,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { useFormat } from '@/hooks/use-format';
+import {
+    destroy as removeConcession,
+    update as updateConcession,
+} from '@/routes/finance/concessions';
 import { destroy, edit, index } from '@/routes/people/students';
 import { store as enroll } from '@/routes/people/students/enrollments';
 import { destroy as unlinkGuardian } from '@/routes/people/students/guardians';
@@ -44,8 +48,111 @@ type Props = {
     years: YearOption[];
     sections: SectionOption[];
     relationships: EnumOption[];
-    can: { linkGuardians: boolean; createGuardians: boolean };
+    concession: { percent: string; reason: string } | null;
+    can: {
+        linkGuardians: boolean;
+        createGuardians: boolean;
+        viewConcession: boolean;
+        manageConcession: boolean;
+    };
 };
+
+function ConcessionCard({
+    studentId,
+    concession,
+    canManage,
+}: {
+    studentId: number;
+    concession: Props['concession'];
+    canManage: boolean;
+}) {
+    const form = useForm({
+        percent: concession?.percent ?? '',
+        reason: concession?.reason ?? '',
+    });
+
+    const save = (event: FormEvent): void => {
+        event.preventDefault();
+        form.put(updateConcession.url(studentId), { preserveScroll: true });
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Fee concession</CardTitle>
+                <CardDescription>
+                    Applied to invoices generated from now on.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {canManage ? (
+                    <form
+                        onSubmit={save}
+                        className="grid items-end gap-3 sm:grid-cols-[7rem_1fr_auto_auto]"
+                    >
+                        <FormField
+                            id="concession-percent"
+                            label="Discount %"
+                            error={form.errors.percent}
+                        >
+                            <Input
+                                id="concession-percent"
+                                type="number"
+                                min={0.01}
+                                max={100}
+                                step="0.01"
+                                value={form.data.percent}
+                                onChange={(e) =>
+                                    form.setData('percent', e.target.value)
+                                }
+                                required
+                            />
+                        </FormField>
+                        <FormField
+                            id="concession-reason"
+                            label="Reason"
+                            error={form.errors.reason}
+                        >
+                            <Input
+                                id="concession-reason"
+                                value={form.data.reason}
+                                onChange={(e) =>
+                                    form.setData('reason', e.target.value)
+                                }
+                                placeholder="Sibling discount"
+                                required
+                            />
+                        </FormField>
+                        <Button type="submit" disabled={form.processing}>
+                            Save
+                        </Button>
+                        {concession && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() =>
+                                    router.visit(removeConcession(studentId), {
+                                        preserveScroll: true,
+                                    })
+                                }
+                            >
+                                Remove
+                            </Button>
+                        )}
+                    </form>
+                ) : concession ? (
+                    <p className="text-sm">
+                        {concession.percent}% · {concession.reason}
+                    </p>
+                ) : (
+                    <p className="text-sm text-muted-foreground">
+                        No concession.
+                    </p>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
 
 function Detail({
     label,
@@ -169,6 +276,7 @@ export default function ShowStudent({
     years,
     sections,
     relationships,
+    concession,
     can,
 }: Props) {
     const format = useFormat();
@@ -352,6 +460,14 @@ export default function ShowStudent({
                     </CardContent>
                 </Card>
             </div>
+
+            {can.viewConcession && (
+                <ConcessionCard
+                    studentId={student.id}
+                    concession={concession}
+                    canManage={can.manageConcession}
+                />
+            )}
 
             <Card>
                 <CardHeader>

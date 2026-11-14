@@ -10,6 +10,7 @@ use App\Http\Requests\People\StudentRequest;
 use App\Http\Resources\GuardianResource;
 use App\Http\Resources\StudentResource;
 use App\Models\Enrollment;
+use App\Models\FeeConcession;
 use App\Models\Student;
 use App\Services\Academics\AcademicOptions;
 use App\Services\People\StudentService;
@@ -110,9 +111,14 @@ class StudentController extends Controller
             'years' => $this->options->years(),
             'sections' => $this->options->sections(),
             'relationships' => GuardianRelationship::options(),
+            'concession' => $request->user()->can('fees.view')
+                ? FeeConcession::query()->where('student_id', $student->id)->first()?->only(['percent', 'reason'])
+                : null,
             'can' => [
                 'linkGuardians' => $request->user()->can('update', $student) && $request->user()->can('guardians.view'),
                 'createGuardians' => $request->user()->can('guardians.create'),
+                'viewConcession' => $request->user()->can('fees.view'),
+                'manageConcession' => $request->user()->can('fees.edit'),
             ],
         ]);
     }

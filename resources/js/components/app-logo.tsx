@@ -8,12 +8,12 @@ export default function AppLogo() {
 
     return (
         <>
-            <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+            <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-fuchsia-500 via-violet-500 to-indigo-500 text-white shadow-md shadow-fuchsia-900/30">
                 {branding?.logoUrl ? (
                     <img
                         src={branding.logoUrl}
                         alt=""
-                        className="size-full object-cover"
+                        className="size-full bg-white object-cover"
                     />
                 ) : (
                     <AppLogoIcon className="size-5 fill-current" />
@@ -24,7 +24,7 @@ export default function AppLogo() {
                     {displayName}
                 </span>
                 {tenant?.current && displayName !== tenant.current.name && (
-                    <span className="truncate text-xs text-muted-foreground">
+                    <span className="truncate text-xs text-sidebar-foreground/70">
                         {tenant.current.name}
                     </span>
                 )}

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 
 /**
  * A parent or guardian. One guardian may be linked to several students (siblings).
@@ -39,7 +40,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Guardian extends Model
 {
     /** @use HasFactory<GuardianFactory> */
-    use Auditable, BelongsToSchool, HasBlindIndexes, HasFactory, HasFullName, SoftDeletes;
+    use Auditable, BelongsToSchool, HasBlindIndexes, HasFactory, HasFullName, Notifiable, SoftDeletes;
 
     /**
      * @var list<string>

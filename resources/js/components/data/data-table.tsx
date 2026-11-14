@@ -50,11 +50,11 @@ export function DataTable<T>({
     };
 
     return (
-        <div className="overflow-hidden rounded-xl border border-sidebar-border/70 bg-card dark:border-sidebar-border">
+        <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                     <caption className="sr-only">{caption}</caption>
-                    <thead className="border-b bg-muted/40 text-left text-xs text-muted-foreground uppercase">
+                    <thead className="border-b bg-gradient-to-r from-indigo-50 via-violet-50 to-fuchsia-50 text-left text-xs text-indigo-950/70 uppercase dark:from-indigo-500/10 dark:via-violet-500/10 dark:to-fuchsia-500/10 dark:text-indigo-100/80">
                         <tr>
                             {columns.map((column) => {
                                 const active = sort?.column === column.sortKey;
@@ -125,7 +125,7 @@ export function DataTable<T>({
                             rows.map((row) => (
                                 <tr
                                     key={rowKey(row)}
-                                    className="transition-colors hover:bg-muted/30"
+                                    className="transition-colors hover:bg-indigo-50/60 dark:hover:bg-indigo-500/5"
                                 >
                                     {columns.map((column) => (
                                         <td

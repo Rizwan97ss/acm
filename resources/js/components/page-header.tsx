@@ -16,12 +16,16 @@ export default function PageHeader({
         <>
             <Head title={title} />
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div className="space-y-1">
-                    <h1 className="text-xl font-semibold tracking-tight">
+                <div className="space-y-1.5">
+                    <h1 className="text-2xl font-bold tracking-tight">
                         {title}
                     </h1>
+                    <div
+                        className="h-1 w-14 rounded-full bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-orange-400"
+                        aria-hidden
+                    />
                     {description && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="pt-1 text-sm text-muted-foreground">
                             {description}
                         </p>
                     )}

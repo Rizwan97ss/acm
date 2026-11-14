@@ -37,7 +37,7 @@ test('a school admin overrides branding for their school only', function () {
     $response->assertSessionHasNoErrors()->assertRedirect(route('admin.settings.edit', 'branding'));
     $settings = app(SettingsService::class);
     expect($settings->get('branding.primary_color', $school->id))->toBe('#16a34a')
-        ->and($settings->get('branding.primary_color'))->toBe('#2563eb');
+        ->and($settings->get('branding.primary_color'))->toBe('#4f46e5');
     $this->assertDatabaseHas('audit_logs', ['event' => 'settings.school.updated', 'user_id' => $admin->id]);
 });
 
@@ -50,7 +50,7 @@ test('a null value removes a school override', function () {
         'values' => ['app_name' => null, 'primary_color' => null, 'default_theme' => null],
     ])->assertSessionHasNoErrors();
 
-    expect(app(SettingsService::class)->get('branding.primary_color', $school->id))->toBe('#2563eb');
+    expect(app(SettingsService::class)->get('branding.primary_color', $school->id))->toBe('#4f46e5');
 });
 
 test('setting values are validated against the registry', function () {
@@ -61,7 +61,7 @@ test('setting values are validated against the registry', function () {
     ]);
 
     $response->assertSessionHasErrors(['values.primary_color', 'values.default_theme']);
-    expect(app(SettingsService::class)->get('branding.primary_color'))->toBe('#2563eb');
+    expect(app(SettingsService::class)->get('branding.primary_color'))->toBe('#4f46e5');
 });
 
 test('platform-only security settings are not available inside a school', function () {

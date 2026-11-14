@@ -3,6 +3,7 @@
 namespace App\Services\Dashboard;
 
 use App\Models\User;
+use App\Services\Dashboard\Widgets\FinanceSnapshotWidget;
 use App\Services\Dashboard\Widgets\LoginActivityWidget;
 use App\Services\Dashboard\Widgets\OverviewStatsWidget;
 use App\Services\Dashboard\Widgets\RecentActivityWidget;
@@ -19,6 +20,7 @@ class DashboardService
     private const array WIDGETS = [
         OverviewStatsWidget::class,
         TodaysLessonsWidget::class,
+        FinanceSnapshotWidget::class,
         LoginActivityWidget::class,
         RoleDistributionWidget::class,
         RecentActivityWidget::class,

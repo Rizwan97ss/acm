@@ -176,7 +176,7 @@ export default function TimetableIndex({
 
             {ready && (
                 <div className="grid gap-4 xl:grid-cols-[1fr_16rem]">
-                    <div className="overflow-x-auto rounded-xl border border-sidebar-border/70 bg-card dark:border-sidebar-border">
+                    <div className="overflow-x-auto rounded-2xl border bg-card shadow-sm">
                         <table className="w-full min-w-[720px] table-fixed text-sm">
                             <caption className="sr-only">
                                 {selected.view === 'section'

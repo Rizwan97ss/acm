@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\School;
 use App\Models\User;
 use App\Services\Tenancy\CurrentSchool;
+use App\Services\Tenancy\Tenancy;
 use App\Services\Users\UserService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -147,7 +148,7 @@ class UserController extends Controller
 
         return [
             'roles' => $roles,
-            'schools' => $actor->isPlatformUser()
+            'schools' => $actor->isPlatformUser() && app(Tenancy::class)->isMulti()
                 ? School::query()->orderBy('name')->get(['id', 'name'])
                 : [],
             'defaultSchoolId' => $this->currentSchool->id(),

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SchoolRequest;
 use App\Http\Resources\SchoolResource;
 use App\Models\School;
+use App\Services\Tenancy\Tenancy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,9 +22,13 @@ use RuntimeException;
 
 class SchoolController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, Tenancy $tenancy): Response|RedirectResponse
     {
         Gate::authorize('viewAny', School::class);
+
+        if ($tenancy->isSingle()) {
+            return to_route('admin.schools.edit', $tenancy->institute());
+        }
 
         $filters = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],

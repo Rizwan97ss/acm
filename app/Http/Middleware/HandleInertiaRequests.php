@@ -4,8 +4,10 @@ namespace App\Http\Middleware;
 
 use App\Models\School;
 use App\Models\User;
+use App\Services\People\PortalScope;
 use App\Services\Settings\SettingsService;
 use App\Services\Tenancy\CurrentSchool;
+use App\Services\Tenancy\Tenancy;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -23,6 +25,7 @@ class HandleInertiaRequests extends Middleware
     public function __construct(
         private CurrentSchool $currentSchool,
         private SettingsService $settings,
+        private Tenancy $tenancy,
     ) {}
 
     /**
@@ -56,6 +59,7 @@ class HandleInertiaRequests extends Middleware
                 'permissions' => fn (): array => $user?->permissionNames() ?? [],
                 'roles' => fn (): array => $user?->roles()->pluck('name')->all() ?? [],
                 'isSuperAdmin' => fn (): bool => $user?->isSuperAdmin() ?? false,
+                'isPortalUser' => fn (): bool => $user !== null && app(PortalScope::class)->isPortalUser($user),
             ],
             'tenant' => fn (): array => [
                 'current' => $school ? [
@@ -64,8 +68,9 @@ class HandleInertiaRequests extends Middleware
                     'code' => $school->code,
                     'logo_url' => $school->logo_url,
                 ] : null,
-                'canSwitch' => $user !== null && $user->isPlatformUser() && $user->hasPermission('schools.view'),
-                'schools' => $user !== null && $user->isPlatformUser() && $user->hasPermission('schools.view')
+                'mode' => $this->tenancy->isSingle() ? 'single' : 'multi',
+                'canSwitch' => $this->tenancy->isMulti() && $user !== null && $user->isPlatformUser() && $user->hasPermission('schools.view'),
+                'schools' => $this->tenancy->isMulti() && $user !== null && $user->isPlatformUser() && $user->hasPermission('schools.view')
                     ? School::query()->active()->orderBy('name')->get(['id', 'name', 'code'])
                     : [],
             ],

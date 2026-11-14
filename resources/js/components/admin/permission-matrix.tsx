@@ -55,7 +55,7 @@ export default function PermissionMatrix({
         names.every((name) => selectedSet.has(name) || inheritedSet.has(name));
 
     return (
-        <div className="overflow-x-auto rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+        <div className="overflow-x-auto rounded-xl border shadow-sm">
             <table className="w-full min-w-[640px] text-sm">
                 <caption className="sr-only">
                     Permissions by module and action

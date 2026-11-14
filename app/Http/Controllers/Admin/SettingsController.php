@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Services\Audit\AuditLogger;
 use App\Services\Settings\SettingsService;
 use App\Services\Tenancy\CurrentSchool;
+use App\Services\Tenancy\Tenancy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -54,8 +55,10 @@ class SettingsController extends Controller
                 'description' => $groups[$group]['description'] ?? null,
             ],
             'scope' => $this->scope()->value,
-            'scopeLabel' => $this->currentSchool->get()->name ?? __('All schools (platform defaults)'),
-            'fields' => $this->settings->fieldsFor($group, $this->scope(), $this->currentSchool->id() ?? 0),
+            'scopeLabel' => app(Tenancy::class)->isSingle()
+                ? (string) $this->currentSchool->get()?->name
+                : ($this->currentSchool->get()->name ?? __('All schools (platform defaults)')),
+            'fields' => $this->settings->fieldsFor($group, $this->scope(), $this->scopeId()),
             'canEdit' => Gate::allows('settings.edit'),
         ]);
     }
@@ -67,7 +70,7 @@ class SettingsController extends Controller
         $scope = $request->scope();
         $changes = $this->settings->put(
             $scope,
-            $this->currentSchool->id() ?? 0,
+            $this->scopeId(),
             $this->settings->qualify($group, $scope, $request->validated('values')),
         );
 
@@ -80,9 +83,14 @@ class SettingsController extends Controller
         return to_route('admin.settings.edit', $group);
     }
 
+    private function scopeId(): int
+    {
+        return $this->scope() === SettingScope::Global ? 0 : (int) $this->currentSchool->id();
+    }
+
     private function scope(): SettingScope
     {
-        return $this->currentSchool->isGlobal() ? SettingScope::Global : SettingScope::School;
+        return $this->currentSchool->isGlobal() || app(Tenancy::class)->isSingle() ? SettingScope::Global : SettingScope::School;
     }
 
     /**

@@ -36,7 +36,7 @@ return [
                 'branding.primary_color' => [
                     'label' => 'Primary colour',
                     'type' => 'color',
-                    'default' => '#2563eb',
+                    'default' => '#4f46e5',
                     'rules' => ['required', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
                     'scopes' => ['global', 'school'],
                 ],
@@ -133,6 +133,14 @@ return [
                     'default' => 40,
                     'rules' => ['required', 'integer', 'min:0', 'max:100'],
                     'scopes' => ['global', 'school'],
+                ],
+                'academic.attendance_alert_threshold' => [
+                    'label' => 'At-risk attendance threshold (%)',
+                    'type' => 'integer',
+                    'default' => 75,
+                    'rules' => ['required', 'integer', 'min:0', 'max:100'],
+                    'scopes' => ['global', 'school'],
+                    'description' => 'Students below this attendance rate are flagged on the Insights page.',
                 ],
             ],
         ],

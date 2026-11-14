@@ -37,7 +37,7 @@ return [
         'attendance' => ['label' => 'Attendance', 'group' => 'Academics', 'actions' => $approvable],
         'exams' => ['label' => 'Examinations', 'group' => 'Academics', 'actions' => $approvable],
         'grades' => ['label' => 'Grades & Results', 'group' => 'Academics', 'actions' => $approvable],
-        'assignments' => ['label' => 'Assignments & Homework', 'group' => 'Academics', 'actions' => $crud],
+        'assignments' => ['label' => 'Assignments & Homework', 'group' => 'Academics', 'actions' => $approvable],
 
         // People
         'admissions' => ['label' => 'Admissions', 'group' => 'People', 'actions' => $approvable],
@@ -102,7 +102,7 @@ return [
                 'classes.view', 'subjects.view', 'timetables.view', 'students.view', 'guardians.view',
                 'attendance.view', 'attendance.create', 'attendance.edit',
                 'exams.view', 'grades.view', 'grades.create', 'grades.edit',
-                'assignments.*', 'announcements.view', 'events.view', 'messages.*', 'leaves.view', 'leaves.create',
+                'assignments.view', 'assignments.create', 'assignments.edit', 'assignments.delete', 'announcements.view', 'events.view', 'messages.*', 'leaves.view', 'leaves.create',
                 'library.view', 'documents.view',
             ],
         ],
@@ -119,8 +119,8 @@ return [
             'description' => 'Views linked children\'s progress, attendance and fees.',
             'permissions' => [
                 'timetables.view', 'attendance.view', 'grades.view', 'assignments.view', 'invoices.view',
-                'payments.view', 'payments.create', 'announcements.view', 'events.view', 'messages.view',
-                'messages.create', 'leaves.create', 'documents.view',
+                'payments.view', 'announcements.view', 'events.view', 'messages.view',
+                'messages.create', 'documents.view',
             ],
         ],
         'accountant' => [

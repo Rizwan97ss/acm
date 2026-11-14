@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
+use App\Services\Tenancy\Tenancy;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -79,9 +80,11 @@ class UserRequest extends FormRequest
             'email' => $this->string('email')->toString(),
             'phone' => $this->filled('phone') ? $this->string('phone')->toString() : null,
             'password' => $this->filled('password') ? $this->string('password')->toString() : null,
-            'school_id' => $actor->isPlatformUser()
-                ? ($this->filled('school_id') ? $this->integer('school_id') : null)
-                : $actor->school_id,
+            'school_id' => match (true) {
+                app(Tenancy::class)->isSingle() => app(Tenancy::class)->institute()->id,
+                $actor->isPlatformUser() => $this->filled('school_id') ? $this->integer('school_id') : null,
+                default => $actor->school_id,
+            },
             'is_active' => $this->boolean('is_active'),
             'roles' => array_values(array_map(intval(...), (array) $this->validated('roles', []))),
         ];

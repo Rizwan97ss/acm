@@ -15,6 +15,7 @@ export type Auth = {
     permissions: string[];
     roles: string[];
     isSuperAdmin: boolean;
+    isPortalUser: boolean;
 };
 
 export type Passkey = {

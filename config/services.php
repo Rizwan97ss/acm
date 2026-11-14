@@ -22,6 +22,17 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    /*
+    | Stateless Python analytics service (see /analytics). Requests are HMAC-signed
+    | with the shared secret; results are cached per school for `cache_minutes`.
+    */
+    'analytics' => [
+        'url' => env('ANALYTICS_URL', 'http://127.0.0.1:8100'),
+        'secret' => env('ANALYTICS_SHARED_SECRET'),
+        'timeout' => (int) env('ANALYTICS_TIMEOUT', 10),
+        'cache_minutes' => (int) env('ANALYTICS_CACHE_MINUTES', 10),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

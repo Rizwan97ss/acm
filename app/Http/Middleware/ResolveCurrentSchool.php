@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\School;
 use App\Services\Tenancy\CurrentSchool;
+use App\Services\Tenancy\Tenancy;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Context;
@@ -13,7 +14,10 @@ class ResolveCurrentSchool
 {
     public const string SESSION_KEY = 'current_school_id';
 
-    public function __construct(private CurrentSchool $currentSchool) {}
+    public function __construct(
+        private CurrentSchool $currentSchool,
+        private Tenancy $tenancy,
+    ) {}
 
     /**
      * @param  Closure(Request): (Response)  $next
@@ -23,9 +27,11 @@ class ResolveCurrentSchool
         $user = $request->user();
 
         if ($user !== null) {
-            $school = $user->school_id !== null
-                ? $user->school
-                : $this->switchedSchool($request);
+            $school = match (true) {
+                $user->school_id !== null => $user->school,
+                $this->tenancy->isSingle() => $this->tenancy->institute(),
+                default => $this->switchedSchool($request),
+            };
 
             $this->currentSchool->set($school);
             Context::add('school_id', $school?->id);

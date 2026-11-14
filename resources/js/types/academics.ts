@@ -75,3 +75,77 @@ export type SubjectAllocation = SubjectOption & {
     planned: number;
     scheduled: number;
 };
+
+export type GradeBandData = {
+    grade: string;
+    min_percentage: number;
+    grade_point: number | null;
+    remark: string | null;
+    is_passing: boolean;
+};
+
+export type ExamSummary = {
+    id: number;
+    name: string;
+    academic_year_id: number;
+    academic_year: string | null;
+    term_id: number | null;
+    term: string | null;
+    grade_scale_id: number;
+    grade_scale: string | null;
+    starts_on: string;
+    ends_on: string;
+    published_at: string | null;
+    papers_count?: number;
+};
+
+export type ResultPaper = {
+    id: number;
+    subject: string;
+    code: string;
+    max_marks: number;
+    pass_marks: number;
+};
+
+export type ExamResultRow = {
+    student: {
+        id: number;
+        name: string;
+        admission_no: string;
+        roll_number: number | null;
+    };
+    subjects: Record<
+        number,
+        {
+            marks: number | null;
+            is_absent: boolean;
+            grade: string | null;
+            passed: boolean;
+            remarks: string | null;
+        }
+    >;
+    total: number;
+    max_total: number;
+    percentage: number | null;
+    grade: string | null;
+    grade_point: number | null;
+    remark: string | null;
+    complete: boolean;
+    passed: boolean | null;
+    rank: number | null;
+};
+
+export type AssignmentSummary = {
+    id: number;
+    title: string;
+    description: string;
+    type: string;
+    type_label: string;
+    due_on: string;
+    max_marks: number | null;
+    section_id: number;
+    section: string | null;
+    subject_id: number;
+    subject: { id: number; name: string; color: string | null } | null;
+    author: string | null;
+};

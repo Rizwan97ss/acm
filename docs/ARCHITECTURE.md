@@ -15,9 +15,9 @@ This document describes how the system is built and how new modules plug into it
                                                          read/write   │              ▼
                                                                       ▼      ┌──────────────────────┐
                                                                ┌──────────┐  │ Python analytics     │
-                                                               │  MySQL   │◄─┤ FastAPI, Pandas,     │
+                                                               │  MySQL   │  │ FastAPI, Pandas,     │
                                                                │ (primary)│  │ NumPy, Plotly        │
-                                                               └──────────┘  │ read-only DB user    │
+                                                               └──────────┘  │ stateless, no DB     │
                                                                              └──────────────────────┘
 ```
 
@@ -27,7 +27,7 @@ This document describes how the system is built and how new modules plug into it
 | ------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
 | Laravel | Authentication, authorization, validation, business rules, transactions, all writes, audit trail | Heavy statistics or forecasting                                         |
 | React   | Presentation, interaction, client-side UX checks                                                 | Authorization decisions (UI hiding is a convenience only)               |
-| Python  | Aggregation, statistics, forecasting, chart data                                                 | Writes business data, authenticates end users, is called by the browser |
+| Python  | Statistics, forecasting, interactive HTML reports over datasets Laravel sends                    | Touches the database, authenticates end users, is called by the browser |
 
 ### Why Inertia rather than a separate SPA + REST API
 
@@ -84,6 +84,13 @@ analytics/             (phase 6) Python FastAPI service, deployed separately
 **Conventions:** controllers authorize, delegate to a service and redirect with a flash toast. Services own transactions, invariants and audit entries. Use repositories only where a query is reused across services; Eloquent is the data-access layer.
 
 ## 4. Multi-tenancy
+
+**Tenancy mode** (`TENANCY_MODE` in `.env`, read through `App\Services\Tenancy\Tenancy`):
+
+- `single` (default): one institute, created on first use from `INSTITUTE_NAME` / `INSTITUTE_CODE`. Everyone works in it automatically. The school switcher, school creation and deletion are disabled, "Schools" becomes "Institute profile", and the settings screens edit the institute-wide (global) values, including security.
+- `multi`: several schools or branches, as described below.
+
+The data model is multi-tenant in both modes, so moving to multi later only means changing this value. The automated tests run in `multi` mode (set in `phpunit.xml`) to keep cross-school isolation covered, and `SingleInstituteModeTest` covers single mode.
 
 - `users.school_id` is **null for platform users** (super admins, platform support) and set for everyone else.
 - `ResolveCurrentSchool` sets the active school on every request. School-bound users are locked to their own school; platform users choose a school with the sidebar switcher (`session.current_school_id`) or work across all schools.
@@ -188,18 +195,34 @@ announcements/events/messages (audience polymorphic); documents/certificates (fi
 | `/admin/*`              | Administration (resource controllers)                                         | `GET/POST /admin/users`, `PUT /admin/roles/{role}`, `POST /admin/schools/{school}/switch`, `PUT /admin/settings/{group}`, `GET /admin/audit-logs` |
 | `/{module}/*`           | Domain modules (phase 2 onward)                                               | `/academics/classes`, `/finance/invoices`                                                                                                         |
 | `/api/v1/*`             | Public token API (pending Sanctum approval)                                   | `GET /api/v1/students`                                                                                                                            |
-| `/internal/analytics/*` | Laravel endpoints that proxy and cache Python results                         | `GET /internal/analytics/attendance-trends`                                                                                                       |
+| `/insights`, `/reports` | Analytics (deferred, cached Python results) and CSV exports                   | `GET /insights`, `GET /insights/report`, `GET /reports/{report}.csv?from=&to=`                                                                    |
 
 The frontend never hardcodes URLs: import from `@/routes/...` or `@/actions/...` (Wayfinder).
 
 ## 8. Python analytics service (phase 6)
 
-- **Location:** `analytics/` (FastAPI app, `pyproject.toml`), deployed as its own service on a private network.
-- **Data access:** a dedicated MySQL user with `SELECT` only, granted on reporting views (`v_attendance_daily`, `v_marks`, `v_invoice_balances`), not on raw tables. Encrypted columns are never exposed to Python.
-- **Auth between services:** Laravel signs each request with HMAC-SHA256 over `method + path + timestamp + body` using `ANALYTICS_SHARED_SECRET`. Python rejects requests with a bad signature or a clock skew over 60 seconds. Every request carries `school_id`, and Python filters by it.
-- **Flow:** React → Laravel (authorizes `analytics.view`, scopes to the current school) → `AnalyticsClient` (HTTP client with timeout, retries and circuit breaking) → Python → JSON → cached in Laravel (`Cache::remember`, keyed by school and parameters) → Inertia deferred prop → React chart.
-- **Endpoints:** `/attendance/trends`, `/attendance/at-risk`, `/performance/distribution`, `/performance/cohort-comparison`, `/finance/collections`, `/finance/forecast` (time-series forecast of fee collections), `/reports/{id}.pdf|xlsx` (queued exports).
-- **Long jobs:** Laravel dispatches a queued job that calls Python, stores the file and notifies the user.
+- **Location:** `analytics/` (FastAPI, Pandas, NumPy, Plotly; pinned in `analytics/requirements.txt`). It is stateless and listens on localhost or a private network only.
+- **No database access.** Laravel stays the only component that talks to MySQL. `AnalyticsDatasets` builds small, pre-aggregated datasets through Eloquent, so the current-school scope always applies. They contain internal IDs and counts or percentages only: no names, no encrypted fields. `InsightsService` attaches student names to the results after they come back. This replaces the earlier plan of a read-only DB user: it is simpler to secure, and tenancy cannot be bypassed.
+- **Auth between services:** `AnalyticsClient` signs each request with `X-Timestamp` and `X-Signature = HMAC-SHA256(ANALYTICS_SHARED_SECRET, "{ts}.{METHOD}.{path}.{sha256(body)}")`. Python (`app/security.py`) rejects a bad signature, a clock skew over 60 seconds, or a body over 5 MB, and compares in constant time. The secret must be at least 32 characters. Docs and OpenAPI endpoints are disabled; only `/health` is unauthenticated.
+- **Flow:** React → `GET /insights` (`analytics.view`, plus each section's module permission: `attendance.view`, `exams.view`, `accounting.view`) → Inertia deferred props → `InsightsService` → Python → JSON. Successful results are cached for 10 minutes per school (`ANALYTICS_CACHE_MINUTES`). Failures are never cached. If the service is down, each section shows an "unavailable" state and the rest of the app is unaffected.
+- **Endpoints (all `POST`):**
+    - `/v1/attendance/trends`: daily rate, 7-day moving average, weekday pattern, weekly trend slope (NumPy polyfit).
+    - `/v1/attendance/at-risk`: rate below the `academic.attendance_alert_threshold` setting, 3+ absences in 14 days, or frequent lateness, ranked by a risk score with z-scores.
+    - `/v1/performance/summary`: the latest published exam's subject mean, median, std and pass rate, the score distribution, the attendance–score correlation, and improvers and decliners versus the previous exam.
+    - `/v1/finance/forecast`: 12-month billed, collected and expense history; a Holt linear-trend forecast with an 80% band; receivables ageing (not due, 1–30, 31–60, 61–90, 90+).
+    - `/v1/reports/html`: a self-contained interactive Plotly report (downloaded via `GET /insights/report`, needs `analytics.export`, audited).
+- **CSV exports** are generated in Laravel (`ReportCatalog` and `CsvExporter`). They need `reports.export` plus view access to the module, and cover the student roll, attendance register, invoices, payments and expenses. Rows are streamed with a UTF-8 BOM, limited to one year per file, and audited (`report.exported`). Cells beginning with `= + - @` are prefixed with `'` to stop formula injection. Encrypted personal fields and salaries are not exportable.
+- **Running it:**
+
+```bash
+cd analytics
+python -m venv .venv && .venv/Scripts/pip install -r requirements.txt   # .venv/bin/pip on Linux/macOS
+export ANALYTICS_SHARED_SECRET=...   # same value as in Laravel's .env (PowerShell: $env:ANALYTICS_SHARED_SECRET="...")
+.venv/Scripts/python -m uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8100
+.venv/Scripts/python -m pytest        # service tests
+```
+
+In production, run it under a process manager (systemd or Supervisor) bound to `127.0.0.1`, or on a private network, with several workers (`--workers 2`).
 
 ## 9. Security checklist
 
@@ -222,6 +245,7 @@ php artisan migrate
 php artisan db:seed            # rbac:sync always; demo school + accounts only outside production
 php artisan storage:link       # school logos
 composer run dev
+# optional: the analytics service (section 8); set ANALYTICS_SHARED_SECRET in .env
 ```
 
 Demo accounts (all with the password `password`, local only): `admin@example.com` (Super Admin), `school.admin@example.com`, `principal@example.com`, `teacher@example.com`, `accountant@example.com`, `hr@example.com`, `librarian@example.com`, `reception@example.com`, `student@example.com`, `parent@example.com`, `north.admin@example.com` (branch admin).
@@ -245,9 +269,9 @@ Run `php artisan rbac:sync` on every deploy, after migrations.
 | 1 ✅  | Auth, RBAC, tenancy, settings, audit, dashboard, admin UI                                                                 |
 | 2 ✅  | Academic years and terms, classes and sections, subjects, bell schedule, timetable with clash detection                   |
 | 3 ✅  | Admissions workflow, students, guardians, staff (teaching and non-teaching), enrollment, portal accounts                  |
-| 4     | Attendance, examinations, grading scales, results, assignments and homework                                               |
-| 5     | Fees, invoices, payments, expenses, accounting ledger, payroll, HR and leave                                              |
-| 6     | Python analytics service, reports and exports, forecasting                                                                |
+| 4 ✅  | Attendance, examinations, grading scales, results and report cards, assignments and homework, "My progress"               |
+| 5 ✅  | Fees, invoices, payments, expenses, double-entry accounting, payroll, leave                                               |
+| 6 ✅  | Python analytics service, reports and exports, forecasting                                                                |
 | 7     | Library, transport, inventory, communication (announcements, events, messages, notifications), documents and certificates |
 | 8     | Public API (`/api/v1`, Sanctum), mobile-ready endpoints, webhooks                                                         |
 
@@ -268,3 +292,26 @@ Run `php artisan rbac:sync` on every deploy, after migrations.
 - **Portal accounts:** staff never choose passwords for students or parents. "Invite to portal" creates the user with the `student` or `parent` role, is subject to the same no-escalation check as user management, and emails a password-reset link.
 - **Confidential fields:** national IDs, medical notes, addresses, phones and bank details are encrypted. They are decrypted in API resources only for users who may edit the record; everyone else gets masked values (`MasksSensitiveValues`).
 - **Portal scoping** (`PortalScope`): users linked to a student or guardian record, and not to a staff record, see only their own or their children's sections on the timetable and the dashboard. This closes the phase 2 limitation.
+
+### Phase 4 notes
+
+- **Teaching scope** (`TeachingScope`): holding `{module}.approve` (attendance, grades, assignments) makes a user a supervisor across the school. Everyone else works only with sections they are class teacher of or teach on the timetable. Mark entry is subject-level: the subject's timetable teacher or the section's class teacher.
+- **Attendance** is recorded daily, one record per student per day; late counts as present and excused days are not counted. Non-supervisors can record today and the previous seven days; nobody can record future dates. Newly absent students trigger a queued email (`StudentAbsentNotification`) to emergency-contact guardians when the notification settings allow it. Period-wise attendance (the `academic.attendance_mode = period` setting) is not implemented yet.
+- **Grading scales:** bands run from each minimum percentage up to the next band, and the lowest band must start at 0%. A "Standard" A+–F scale is created on first use.
+- **Exams → papers → marks.** `ResultService` computes totals, percentages, grades, pass/fail (a student must pass every paper) and competition ranks ("1, 2, 2, 4") per section; only students with every mark entered are ranked. Publishing requires `exams.approve` and at least one mark; published exams are read-only until unpublished.
+- **Report cards** are printable and include attendance. Staff can see them any time within their teaching scope; students and guardians only for published exams and only for their own children.
+- **Assignments:** students submit text answers and can resubmit until the work is graded; late submissions are flagged; teachers grade within the assignment's maximum. File attachments are not implemented yet.
+- **My progress** (`/academics/progress`) gives students and guardians attendance, published results and work due soon for each child.
+
+### Phase 5 notes
+
+- **Money** is stored as integer minor units (cents) everywhere (`App\Services\Finance\Money` converts typed amounts), so arithmetic never uses floats. The UI formats amounts in the `localization.currency` setting. Two-decimal currencies are assumed.
+- **Double-entry ledger** (`LedgerService`): system chart of accounts (1000 Cash, 1010 Bank, 1100 Fees receivable, 2100 Payroll deductions payable, 3000 Retained earnings, 4000 Fee income, 4900 Other income, 5000 Operating expenses, 5100 Salaries). Every posting balances or is refused. Entries are never edited: voids and reversals post reversing entries linked through `reverses_id`.
+    - Invoice issued: Dr Fees receivable / Cr Fee income.
+    - Payment: Dr Cash (cash) or Bank (all other methods) / Cr Fees receivable.
+    - Approved expense: Dr Operating expenses / Cr Cash or Bank.
+    - Payroll paid: Dr Salaries (earned pay) / Cr Bank (net) / Cr Payroll deductions payable (deductions other than unpaid leave).
+- **Billing:** fee items per academic year and class (or every class) → invoice batches per student, with each student's standing concession applied per line. Re-running a batch with the same title skips students who are already billed. Payments never exceed the balance; invoice status (unpaid → partly paid → paid) is derived. Invoices with payments must have those payments reversed (`payments.approve`) before they can be voided (`invoices.delete`). Guardians and students see only their own children's invoices and receipts, and cannot record payments. There is no online payment gateway yet.
+- **Expenses** are pending until approved by someone other than the submitter (segregation of duties; super admins excepted). Only approved expenses reach the ledger.
+- **Leave:** default types are created on first use. Days are counted on school days per the school-week setting. Overlapping requests and requests beyond the remaining yearly allowance are refused. Nobody reviews their own request.
+- **Payroll:** salary profiles, payslip amounts and breakdowns are encrypted at rest. A draft run can be recalculated; approve → pay. Approved unpaid leave in the month is deducted at basic ÷ school days × days. Staff see their own payslips once a run is approved.

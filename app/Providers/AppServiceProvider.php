@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Services\Rbac\PermissionResolver;
 use App\Services\Settings\SettingsService;
 use App\Services\Tenancy\CurrentSchool;
+use App\Services\Tenancy\Tenancy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(CurrentSchool::class);
+        $this->app->scoped(Tenancy::class);
         $this->app->scoped(PermissionResolver::class);
     }
 

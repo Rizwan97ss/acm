@@ -1,11 +1,14 @@
 <?php
 
 use App\Models\AcademicYear;
+use App\Models\Enrollment;
+use App\Models\Guardian;
 use App\Models\Period;
 use App\Models\Role;
 use App\Models\School;
 use App\Models\SchoolClass;
 use App\Models\Section;
+use App\Models\Student;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\Rbac\PermissionRegistry;
@@ -100,6 +103,32 @@ function academicSchool(): array
     $nextPeriod = Period::factory()->create(['school_id' => $school->id, 'position' => 2, 'starts_at' => '08:45', 'ends_at' => '09:30']);
 
     return compact('school', 'admin', 'teacher', 'year', 'section', 'subject', 'period', 'nextPeriod');
+}
+
+/**
+ * academicSchool() plus a class teacher with teaching permissions and an enrolled
+ * student whose guardian is an emergency contact with an email address.
+ *
+ * @return array<string, mixed>
+ */
+function teachingSchool(): array
+{
+    $setup = academicSchool();
+
+    $classTeacher = userWithPermissions([
+        'attendance.view', 'attendance.create', 'attendance.edit',
+        'exams.view', 'grades.view', 'grades.create', 'grades.edit',
+        'assignments.view', 'assignments.create', 'assignments.edit', 'assignments.delete',
+    ], $setup['school']);
+    $setup['section']->update(['class_teacher_id' => $classTeacher->id]);
+
+    $student = Student::factory()->create(['school_id' => $setup['school']->id, 'first_name' => 'Ali']);
+    Enrollment::factory()->create(['student_id' => $student->id, 'section_id' => $setup['section']->id, 'academic_year_id' => $setup['year']->id, 'roll_number' => 1]);
+
+    $guardian = Guardian::factory()->create(['school_id' => $setup['school']->id, 'email' => 'mum@example.com']);
+    $student->guardians()->attach($guardian->id, ['relationship' => 'mother', 'is_primary' => true, 'is_emergency_contact' => true]);
+
+    return [...$setup, 'classTeacher' => $classTeacher, 'student' => $student, 'guardian' => $guardian];
 }
 
 function superAdmin(): User

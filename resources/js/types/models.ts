@@ -108,6 +108,7 @@ export type SettingField = {
 };
 
 export type Tenant = {
+    mode: 'single' | 'multi';
     current: SchoolSummary | null;
     canSwitch: boolean;
     schools: SchoolSummary[];

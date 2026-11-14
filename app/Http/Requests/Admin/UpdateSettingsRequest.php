@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Enums\SettingScope;
 use App\Services\Settings\SettingsService;
 use App\Services\Tenancy\CurrentSchool;
+use App\Services\Tenancy\Tenancy;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -20,7 +21,7 @@ class UpdateSettingsRequest extends FormRequest
             return SettingScope::User;
         }
 
-        return app(CurrentSchool::class)->isGlobal() ? SettingScope::Global : SettingScope::School;
+        return app(CurrentSchool::class)->isGlobal() || app(Tenancy::class)->isSingle() ? SettingScope::Global : SettingScope::School;
     }
 
     /**

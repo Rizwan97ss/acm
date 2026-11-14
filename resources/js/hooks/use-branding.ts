@@ -18,11 +18,8 @@ const luminance = (hex: string): number => {
     return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
 };
 
-const TOKENS = ['--primary', '--ring', '--sidebar-primary', '--chart-1'];
-const FOREGROUND_TOKENS = [
-    '--primary-foreground',
-    '--sidebar-primary-foreground',
-];
+const TOKENS = ['--primary', '--ring', '--chart-1'];
+const FOREGROUND_TOKENS = ['--primary-foreground'];
 
 /**
  * Applies the school's brand colour to the design tokens so every primary
