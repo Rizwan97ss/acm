@@ -10,6 +10,9 @@ import {
     LineChart,
     Megaphone,
     Library,
+    Bus,
+    Boxes,
+    FolderOpen,
     BookMarked,
     MessagesSquare,
     Download,
@@ -56,6 +59,10 @@ import { index as events } from '@/routes/communication/events';
 import { index as messages } from '@/routes/communication/messages';
 import { index as libraryBooks } from '@/routes/library/books';
 import { index as libraryLoans } from '@/routes/library/loans';
+import { index as inventory } from '@/routes/operations/inventory';
+import { index as transport } from '@/routes/operations/transport';
+import { index as certificates } from '@/routes/records/certificates';
+import { index as documents } from '@/routes/records/documents';
 import { index as reports } from '@/routes/reports';
 import { progress } from '@/routes/academics';
 import { overview as accounting } from '@/routes/finance/accounting';
@@ -285,6 +292,37 @@ function navGroups(singleInstitute: boolean): NavGroup[] {
                     href: libraryLoans(),
                     icon: BookMarked,
                     permissions: ['library.view'],
+                },
+            ],
+        },
+        {
+            title: 'Operations',
+            tone: 'sky',
+            items: [
+                {
+                    title: 'Transport',
+                    href: transport(),
+                    icon: Bus,
+                    permissions: ['transport.view'],
+                },
+                {
+                    title: 'Inventory',
+                    href: inventory(),
+                    icon: Boxes,
+                    permissions: ['inventory.view'],
+                    audience: 'staff',
+                },
+                {
+                    title: 'Documents',
+                    href: documents(),
+                    icon: FolderOpen,
+                    permissions: ['documents.view'],
+                },
+                {
+                    title: 'Certificates',
+                    href: certificates(),
+                    icon: Award,
+                    permissions: ['certificates.view'],
                 },
             ],
         },

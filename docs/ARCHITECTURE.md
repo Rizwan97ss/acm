@@ -272,7 +272,7 @@ Run `php artisan rbac:sync` on every deploy, after migrations.
 | 4 ✅  | Attendance, examinations, grading scales, results and report cards, assignments and homework, "My progress"               |
 | 5 ✅  | Fees, invoices, payments, expenses, double-entry accounting, payroll, leave                                               |
 | 6 ✅  | Python analytics service, reports and exports, forecasting                                                                |
-| 7 🚧  | ✅ Communication (announcements, events, messages, notifications), ✅ library · next: transport, inventory, documents and certificates |
+| 7 ✅  | Library, transport, inventory, communication (announcements, events, messages, notifications), documents and certificates |
 | 8     | Public API (`/api/v1`, Sanctum), mobile-ready endpoints, webhooks                                                         |
 
 ### Phase 2 notes
@@ -316,11 +316,16 @@ Run `php artisan rbac:sync` on every deploy, after migrations.
 - **Leave:** default types are created on first use. Days are counted on school days per the school-week setting. Overlapping requests and requests beyond the remaining yearly allowance are refused. Nobody reviews their own request.
 - **Payroll:** salary profiles, payslip amounts and breakdowns are encrypted at rest. A draft run can be recalculated; approve → pay. Approved unpaid leave in the month is deducted at basic ÷ school days × days. Staff see their own payslips once a run is approved.
 
-### Phase 7 notes (in progress)
+### Phase 7 notes
 
 - **Audiences** (`App\Enums\Audience`, `TargetsAudience`, `AudienceResolver`): announcements and events go to everyone, staff, students or guardians, and student or guardian audiences can be narrowed to one class. Readers see only live items addressed to them (a guardian sees their children's classes); managers (`announcements.create`/`approve`, `events.create`) see everything.
 - **Announcements** are drafts until someone with `announcements.approve` publishes them. Publishing sends an in-app `AnnouncementPublished` notification (database channel, queued) to every active account in the audience except the publisher. Unpublishing returns an announcement to drafts; editing a published one does not notify again.
 - **Messages:** private conversations with bodies encrypted at rest. Notifications never copy message text. Staff can write to staff and guardians, guardians can write to staff, and students can read but not write (safeguarding). Non-participants get a 404. "Leave" removes the thread only for that person.
 - **Notifications:** the bell in the header shows `auth.unreadNotifications`. `/notifications/{id}` marks a notification read and follows its link (relative URLs only).
 - **Library:** catalogue (`library_books`, with copies owned and available) and loans to a student (admission number) or an employee (staff number). The book row is locked while a copy is issued or returned. Loans are refused when no copy is left, the borrower has an overdue book or has reached `library.max_loans`, or already holds that title. The due date is `library.loan_days` from issue. Late returns record a fine of days late × `library.fine_per_day` (cents). Fines are recorded only and not yet invoiced. Students and guardians see only their own or their children's loans.
+- **Transport:** routes with ordered stops (pick-up and drop-off times), a vehicle, a driver and a seat capacity. Each student has at most one seat. Assigning locks the route row so capacity can never be exceeded, and the stop must belong to the route. Capacity cannot be lowered below the current riders, and a route with riders cannot be deleted. Editing stops keeps their ids so students' chosen stops survive. Students and guardians see only their own seat: route, stop, times and driver contact.
+- **Inventory:** items with a unit, location and reorder level. Quantity changes only through append-only movements (`in`, `out`, or `adjust` = stock count), each storing the balance afterwards, under a row lock. Stock never goes negative. Items still holding stock cannot be deleted.
+- **Documents:** uploads (PDF, Office, text, CSV, PNG/JPG, at most 10 MB, checked by both extension and detected MIME type) are stored on the private `local` disk under random names. They are always served through `DocumentController@download` as an `application/octet-stream` attachment with `nosniff`, and only to people in the document's audience. Other people get a 404.
+- **Certificates:** a draft is prefilled from the student's record (bonafide, character, transfer, achievement) and numbered `CRT-YYYY-NNNNN`. Its wording is editable until someone with `certificates.approve` issues it. Issued certificates can be revoked with a reason but never edited or deleted. The printable A4 page (`standalone/certificate`) watermarks drafts and revoked certificates and carries a public verification link, `/verify/{32-char code}` (rate limited). That link shows only what is printed on the certificate: title, serial number, name, school and date. Students and guardians see and print only their own issued certificates.
+- **Portal permissions:** the student and parent roles gained `transport.view` and `certificates.view`, and parents also gained `library.view`. Run `php artisan rbac:sync` after deploying.
 

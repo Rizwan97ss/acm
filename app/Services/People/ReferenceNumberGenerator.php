@@ -3,6 +3,7 @@
 namespace App\Services\People;
 
 use App\Models\AdmissionApplication;
+use App\Models\Certificate;
 use App\Models\Employee;
 use App\Models\Expense;
 use App\Models\Invoice;
@@ -33,7 +34,7 @@ class ReferenceNumberGenerator
      *
      * @template TReturn
      *
-     * @param  'student'|'employee'|'application'|'invoice'|'receipt'|'expense'  $kind
+     * @param  'student'|'employee'|'application'|'invoice'|'receipt'|'expense'|'certificate'  $kind
      * @param  Closure(string): TReturn  $create
      * @return TReturn
      */
@@ -44,7 +45,7 @@ class ReferenceNumberGenerator
     }
 
     /**
-     * @param  'student'|'employee'|'application'|'invoice'|'receipt'|'expense'  $kind
+     * @param  'student'|'employee'|'application'|'invoice'|'receipt'|'expense'|'certificate'  $kind
      */
     private function next(string $kind, int $schoolId): string
     {
@@ -55,6 +56,7 @@ class ReferenceNumberGenerator
             'invoice' => [Invoice::class, 'number', 'INV-'.now()->format('Y').'-', 6],
             'receipt' => [Payment::class, 'receipt_no', 'RCP-'.now()->format('Y').'-', 6],
             'expense' => [Expense::class, 'number', 'EXP-'.now()->format('Y').'-', 5],
+            'certificate' => [Certificate::class, 'serial_no', 'CRT-'.now()->format('Y').'-', 5],
         };
 
         /** @var class-string<Model> $model */

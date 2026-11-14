@@ -140,3 +140,33 @@ function superAdmin(): User
 
     return User::factory()->withRoles($role)->create();
 }
+
+/**
+ * teachingSchool() plus portal accounts: the enrolled student and their guardian (class 1),
+ * and a guardian whose child is in a second class.
+ *
+ * @return array<string, mixed>
+ */
+function communitySchool(): array
+{
+    $setup = teachingSchool();
+    $school = $setup['school'];
+
+    $studentUser = userWithPermissions(['announcements.view', 'events.view', 'messages.view'], $school);
+    $setup['student']->update(['user_id' => $studentUser->id]);
+
+    $guardianUser = userWithPermissions(['announcements.view', 'events.view', 'messages.view', 'messages.create'], $school);
+    $setup['guardian']->update(['user_id' => $guardianUser->id]);
+
+    $otherClass = SchoolClass::factory()->create(['school_id' => $school->id]);
+    $otherSection = Section::factory()->create(['school_class_id' => $otherClass->id, 'name' => 'B']);
+    $otherStudent = Student::factory()->create(['school_id' => $school->id]);
+    Enrollment::factory()->create(['student_id' => $otherStudent->id, 'section_id' => $otherSection->id, 'academic_year_id' => $setup['year']->id]);
+    $otherGuardianUser = userWithPermissions(['announcements.view', 'events.view', 'messages.view', 'messages.create'], $school);
+    $otherGuardian = Guardian::factory()->create(['school_id' => $school->id, 'user_id' => $otherGuardianUser->id]);
+    $otherStudent->guardians()->attach($otherGuardian->id, ['relationship' => 'father', 'is_primary' => true, 'is_emergency_contact' => true]);
+
+    $manager = userWithPermissions(['announcements.view', 'announcements.create', 'announcements.edit', 'announcements.delete', 'announcements.approve', 'events.view', 'events.create', 'events.edit', 'events.delete', 'messages.view', 'messages.create'], $school);
+
+    return [...$setup, 'studentUser' => $studentUser, 'guardianUser' => $guardianUser, 'otherClass' => $otherClass, 'otherGuardianUser' => $otherGuardianUser, 'manager' => $manager];
+}

@@ -112,6 +112,7 @@ return [
             'permissions' => [
                 'timetables.view', 'attendance.view', 'exams.view', 'grades.view', 'assignments.view',
                 'invoices.view', 'announcements.view', 'events.view', 'messages.view', 'library.view', 'documents.view',
+                'transport.view', 'certificates.view',
             ],
         ],
         'parent' => [
@@ -120,7 +121,7 @@ return [
             'permissions' => [
                 'timetables.view', 'attendance.view', 'grades.view', 'assignments.view', 'invoices.view',
                 'payments.view', 'announcements.view', 'events.view', 'messages.view',
-                'messages.create', 'documents.view', 'library.view',
+                'messages.create', 'documents.view', 'library.view', 'transport.view', 'certificates.view',
             ],
         ],
         'accountant' => [
