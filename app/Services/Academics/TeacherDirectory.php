@@ -2,14 +2,15 @@
 
 namespace App\Services\Academics;
 
+use App\Enums\EmployeeStatus;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
- * Teaching staff of a school: active users holding the system "teacher" role or a
- * role that inherits from it. Phase 3 replaces this with the teachers module.
+ * Teaching staff of a school: active users linked to an active teaching staff record,
+ * or holding the system "teacher" role (or a role inheriting from it).
  */
 class TeacherDirectory
 {
@@ -23,7 +24,13 @@ class TeacherDirectory
         return User::query()
             ->where('school_id', $schoolId)
             ->where('is_active', true)
-            ->whereHas('roles', fn (Builder $roles) => $roles->whereIn('roles.id', $this->teacherRoleIds()));
+            ->where(fn (Builder $query) => $query
+                ->whereHas('roles', fn (Builder $roles) => $roles->whereIn('roles.id', $this->teacherRoleIds()))
+                ->orWhereHas('employee', fn (Builder $employee) => $employee
+                    ->withoutGlobalScopes()
+                    ->whereNull('deleted_at')
+                    ->where('is_teaching', true)
+                    ->where('status', EmployeeStatus::Active)));
     }
 
     /**

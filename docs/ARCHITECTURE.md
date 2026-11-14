@@ -244,7 +244,7 @@ Run `php artisan rbac:sync` on every deploy, after migrations.
 | ----- | ------------------------------------------------------------------------------------------------------------------------- |
 | 1 ✅  | Auth, RBAC, tenancy, settings, audit, dashboard, admin UI                                                                 |
 | 2 ✅  | Academic years and terms, classes and sections, subjects, bell schedule, timetable with clash detection                   |
-| 3     | Admissions, students, guardians, teachers, employees, enrollment                                                          |
+| 3 ✅  | Admissions workflow, students, guardians, staff (teaching and non-teaching), enrollment, portal accounts                  |
 | 4     | Attendance, examinations, grading scales, results, assignments and homework                                               |
 | 5     | Fees, invoices, payments, expenses, accounting ledger, payroll, HR and leave                                              |
 | 6     | Python analytics service, reports and exports, forecasting                                                                |
@@ -255,5 +255,16 @@ Run `php artisan rbac:sync` on every deploy, after migrations.
 
 - Academic modules live under `/academics/*` behind `RequireSchoolContext`; platform users pick a school first.
 - `ResolveCurrentSchool` is registered ahead of `SubstituteBindings` in the middleware priority list, so route-model binding is tenant-scoped: another school's record returns 404.
-- "Teachers" are currently users holding the system `teacher` role or a role inheriting from it (`TeacherDirectory`). Phase 3 replaces this with the teachers module.
-- **Known limitation until phase 3:** students and parents hold `timetables.view` and can view any section's timetable in their school. Once enrollments and guardian links exist, the timetable is restricted to their own sections.
+- `TeacherDirectory` defines who can be scheduled: active users linked to an active teaching staff record, or holding the system `teacher` role (or a role inheriting from it).
+
+### Phase 3 notes
+
+- People modules live under `/people/*` (students, guardians, staff, admissions).
+- **Reference numbers** (`ReferenceNumberGenerator`): admission numbers (`GHS260001`), employee numbers (`GHS-E0001`) and application numbers (`APP-2026-00001`) are generated under an atomic cache lock while the record is created. The unique indexes are the backstop. Staff may type a number instead.
+- **Enrollment:** one enrollment per student per academic year. Enrolling again in the same year transfers the student. Section capacity and roll-number uniqueness are enforced, and sections or classes with enrolled students cannot be removed.
+- **Guardians** are shared between siblings. Each student has exactly one primary guardian, maintained by `GuardianService`. Admissions reuse an existing guardian matched by exact phone (via its blind index) or email.
+- **Admissions:** pending → approved | rejected (requires `admissions.approve`); approved → enrolled (also requires `students.create`). Enrolling creates the student, the guardian link and the enrollment in one transaction.
+- **Staff:** `employees.*` covers all staff, while `teachers.*` covers teaching staff only. The list, the forms and the policy all enforce this.
+- **Portal accounts:** staff never choose passwords for students or parents. "Invite to portal" creates the user with the `student` or `parent` role, is subject to the same no-escalation check as user management, and emails a password-reset link.
+- **Confidential fields:** national IDs, medical notes, addresses, phones and bank details are encrypted. They are decrypted in API resources only for users who may edit the record; everyone else gets masked values (`MasksSensitiveValues`).
+- **Portal scoping** (`PortalScope`): users linked to a student or guardian record, and not to a staff record, see only their own or their children's sections on the timetable and the dashboard. This closes the phase 2 limitation.

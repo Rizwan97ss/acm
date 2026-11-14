@@ -55,6 +55,14 @@ class Section extends Model
     }
 
     /**
+     * @return HasMany<Enrollment, $this>
+     */
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+    /**
      * "Grade 5 – A"
      */
     public function fullName(): string

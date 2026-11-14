@@ -2,8 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Gender;
+use App\Enums\GuardianRelationship;
+use App\Models\Employee;
+use App\Models\Guardian;
 use App\Models\Role;
 use App\Models\School;
+use App\Models\Student;
 use App\Models\User;
 use App\Services\Rbac\PermissionResolver;
 use Illuminate\Database\Seeder;
@@ -55,6 +60,47 @@ class DemoSeeder extends Seeder
             $user->roles()->syncWithoutDetaching([$roles[$role] => ['created_at' => now()]]);
         }
 
+        $this->seedPeople($main);
+
         $resolver->flush();
+    }
+
+    /**
+     * Link the demo teacher, student and parent accounts to people records.
+     */
+    private function seedPeople(School $school): void
+    {
+        $account = fn (string $email): int => (int) User::query()->where('email', $email)->value('id');
+
+        Employee::query()->withoutGlobalScopes()->firstOrCreate(['school_id' => $school->id, 'employee_no' => 'GHS-E0001'], [
+            'user_id' => $account('teacher@example.com'),
+            'first_name' => 'Tom',
+            'last_name' => 'Teacher',
+            'email' => 'teacher@example.com',
+            'is_teaching' => true,
+            'designation' => 'Mathematics teacher',
+            'joined_on' => '2024-08-15',
+        ]);
+
+        $student = Student::query()->withoutGlobalScopes()->firstOrCreate(['school_id' => $school->id, 'admission_no' => 'GHS250001'], [
+            'user_id' => $account('student@example.com'),
+            'first_name' => 'Stu',
+            'last_name' => 'Student',
+            'gender' => Gender::Male,
+            'date_of_birth' => '2014-05-20',
+            'email' => 'student@example.com',
+            'admission_date' => '2025-09-01',
+        ]);
+
+        $guardian = Guardian::query()->withoutGlobalScopes()->firstOrCreate(['school_id' => $school->id, 'email' => 'parent@example.com'], [
+            'user_id' => $account('parent@example.com'),
+            'first_name' => 'Pat',
+            'last_name' => 'Parent',
+            'phone' => '+1 555 0199',
+        ]);
+
+        $student->guardians()->syncWithoutDetaching([
+            $guardian->id => ['relationship' => GuardianRelationship::Mother->value, 'is_primary' => true, 'is_emergency_contact' => true],
+        ]);
     }
 }

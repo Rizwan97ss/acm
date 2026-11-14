@@ -2,6 +2,7 @@
 
 namespace App\Services\Academics;
 
+use App\Models\Enrollment;
 use App\Models\SchoolClass;
 use App\Models\TimetableEntry;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,10 @@ class SchoolClassService
             throw ValidationException::withMessages(['class' => __('This class is used in a timetable. Clear its timetable first.')]);
         }
 
+        if (Enrollment::query()->whereIn('section_id', $class->sections()->select('id'))->exists()) {
+            throw ValidationException::withMessages(['class' => __('Students are enrolled in this class and it cannot be deleted.')]);
+        }
+
         $class->delete();
     }
 
@@ -50,6 +55,10 @@ class SchoolClassService
 
         if (TimetableEntry::query()->whereIn('section_id', (clone $removed)->select('id'))->exists()) {
             throw ValidationException::withMessages(['sections' => __('A section you removed is used in a timetable. Clear its timetable first.')]);
+        }
+
+        if (Enrollment::query()->whereIn('section_id', (clone $removed)->select('id'))->exists()) {
+            throw ValidationException::withMessages(['sections' => __('A section you removed has enrolled students. Move them to another section first.')]);
         }
 
         $removed->delete();

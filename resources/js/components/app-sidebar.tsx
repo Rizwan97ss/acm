@@ -1,6 +1,10 @@
 import { Link } from '@inertiajs/react';
 import {
     BookOpen,
+    Briefcase,
+    ClipboardList,
+    HeartHandshake,
+    UserRound,
     Bell,
     Building2,
     CalendarDays,
@@ -32,6 +36,10 @@ import { edit as periods } from '@/routes/academics/periods';
 import { index as subjects } from '@/routes/academics/subjects';
 import { index as timetable } from '@/routes/academics/timetable';
 import { index as auditLogs } from '@/routes/admin/audit-logs';
+import { index as admissions } from '@/routes/people/admissions';
+import { index as guardians } from '@/routes/people/guardians';
+import { index as staff } from '@/routes/people/staff';
+import { index as students } from '@/routes/people/students';
 import { index as roles } from '@/routes/admin/roles';
 import { index as schools } from '@/routes/admin/schools';
 import { index as settings } from '@/routes/admin/settings';
@@ -46,6 +54,35 @@ const navGroups: NavGroup[] = [
     {
         title: 'Overview',
         items: [{ title: 'Dashboard', href: dashboard(), icon: LayoutGrid }],
+    },
+    {
+        title: 'People',
+        items: [
+            {
+                title: 'Students',
+                href: students(),
+                icon: UserRound,
+                permissions: ['students.view'],
+            },
+            {
+                title: 'Guardians',
+                href: guardians(),
+                icon: HeartHandshake,
+                permissions: ['guardians.view'],
+            },
+            {
+                title: 'Admissions',
+                href: admissions(),
+                icon: ClipboardList,
+                permissions: ['admissions.view'],
+            },
+            {
+                title: 'Staff',
+                href: staff(),
+                icon: Briefcase,
+                permissions: ['employees.view', 'teachers.view'],
+            },
+        ],
     },
     {
         title: 'Academics',

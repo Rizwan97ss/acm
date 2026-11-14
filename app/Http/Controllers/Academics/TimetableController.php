@@ -9,6 +9,7 @@ use App\Models\Period;
 use App\Models\Section;
 use App\Models\TimetableEntry;
 use App\Services\Academics\TeacherDirectory;
+use App\Services\People\PortalScope;
 use App\Services\Settings\SettingsService;
 use App\Services\Tenancy\CurrentSchool;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class TimetableController extends Controller
         private TeacherDirectory $teachers,
         private SettingsService $settings,
         private CurrentSchool $currentSchool,
+        private PortalScope $portalScope,
     ) {}
 
     public function index(Request $request): Response
@@ -53,6 +55,15 @@ class TimetableController extends Controller
 
         $teachers = $this->teachers->forSchool((int) $this->currentSchool->id());
         $isTeacher = $teachers->contains('id', $user->id);
+
+        // Students and guardians only see their own (or their children's) sections.
+        $allowedSectionIds = $this->portalScope->sectionIds($user, $year);
+
+        if ($allowedSectionIds !== null) {
+            $sections = $sections->whereIn('id', $allowedSectionIds)->values();
+            $teachers = collect();
+            $filters['view'] = 'section';
+        }
 
         $view = $filters['view'] ?? ($isTeacher && ! $user->can('timetables.edit') ? 'teacher' : 'section');
         $section = $sections->firstWhere('id', $filters['section_id'] ?? null) ?? $sections->first();
