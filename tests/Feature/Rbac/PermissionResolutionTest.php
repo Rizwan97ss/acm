@@ -2,6 +2,7 @@
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\School;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 
@@ -61,4 +62,14 @@ test('rbac sync keeps administrator changes to existing system roles', function 
     $this->artisan('rbac:sync')->assertSuccessful();
 
     expect($teacher->permissions()->pluck('name')->all())->toBe(['fees.view']);
+});
+
+test('the first super admin can be granted from the console', function () {
+    $user = User::factory()->forSchool(School::factory()->create())->create(['email' => 'owner@example.com']);
+
+    $this->artisan('rbac:grant-super-admin', ['email' => 'OWNER@example.com'])->assertSuccessful();
+
+    expect($user->fresh()->isSuperAdmin())->toBeTrue()
+        ->and($user->fresh()->school_id)->toBeNull();
+    $this->artisan('rbac:grant-super-admin', ['email' => 'nobody@example.com'])->assertFailed();
 });
