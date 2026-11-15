@@ -11,6 +11,7 @@ import {
     LineChart,
     Megaphone,
     Library,
+    LifeBuoy,
     Bus,
     Webhook,
     Boxes,
@@ -54,7 +55,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { dashboard, help } from '@/routes';
 import { insights } from '@/routes/analytics';
 import { index as announcements } from '@/routes/communication/announcements';
 import { index as events } from '@/routes/communication/events';
@@ -113,6 +114,7 @@ function navGroups(singleInstitute: boolean): NavGroup[] {
                     icon: Sparkles,
                     audience: 'portal',
                 },
+                { title: 'Help & guide', href: help(), icon: LifeBuoy },
             ],
         },
         {
