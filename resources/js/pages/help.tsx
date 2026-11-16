@@ -27,16 +27,16 @@ const toneTiles: Record<GuideTone, string> = {
     sky: 'from-sky-500 to-cyan-600 shadow-sky-500/25',
     emerald: 'from-emerald-500 to-teal-600 shadow-emerald-500/25',
     amber: 'from-amber-500 to-orange-600 shadow-orange-500/25',
-    pink: 'from-pink-500 to-fuchsia-600 shadow-pink-500/25',
-    violet: 'from-violet-500 to-indigo-600 shadow-indigo-500/25',
+    pink: 'from-gold-500 to-crimson-600 shadow-gold-500/25',
+    violet: 'from-royal-500 to-navy-600 shadow-navy-500/25',
 };
 
 const toneAccents: Record<GuideTone, string> = {
     sky: 'bg-sky-500',
     emerald: 'bg-emerald-500',
     amber: 'bg-amber-500',
-    pink: 'bg-pink-500',
-    violet: 'bg-violet-500',
+    pink: 'bg-gold-500',
+    violet: 'bg-royal-500',
 };
 
 function topicMatches(topic: GuideTopic, query: string): boolean {
@@ -62,7 +62,7 @@ function SetupChecklist({ setup }: { setup: Record<SetupKey, boolean> }) {
             aria-labelledby="setup-title"
             className="scroll-mt-20 overflow-hidden rounded-2xl border bg-card shadow-sm"
         >
-            <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-5 text-white">
+            <div className="bg-gradient-to-br from-navy-600 to-royal-600 p-5 text-white">
                 <div className="flex items-start gap-3">
                     <div className="rounded-xl bg-white/15 p-2.5">
                         <SetupIcon className="size-6" aria-hidden />
@@ -279,7 +279,7 @@ export default function Help({ setup }: Props) {
                             <li>
                                 <a
                                     href="#setup"
-                                    className="block rounded-md px-3 py-1.5 font-medium text-indigo-700 hover:bg-muted dark:text-indigo-300"
+                                    className="block rounded-md px-3 py-1.5 font-medium text-navy-700 hover:bg-muted dark:text-navy-300"
                                 >
                                     Set up your school
                                 </a>

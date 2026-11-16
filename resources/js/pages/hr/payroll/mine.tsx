@@ -29,7 +29,7 @@ export default function MyPayslips({
                         href={payslip(slip.id)}
                         className="group flex items-center gap-4 rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                     >
-                        <span className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
+                        <span className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-royal-500 to-crimson-500 text-white">
                             <FileText className="size-5" aria-hidden />
                         </span>
                         <span className="min-w-0 flex-1">

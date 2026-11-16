@@ -7,12 +7,16 @@ use App\Http\Controllers\Admin\SchoolController;
 use App\Http\Controllers\Admin\SchoolSwitchController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\UserTwoFactorController;
 use App\Http\Controllers\Admin\WebhookController;
 use App\Http\Middleware\RequireSchoolContext;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('users', UserController::class)->except('show');
+    Route::delete('users/{user}/two-factor', [UserTwoFactorController::class, 'destroy'])
+        ->middleware('throttle:10,1')
+        ->name('users.two-factor.destroy');
     Route::resource('roles', RoleController::class)->except('show');
     Route::resource('schools', SchoolController::class)->except('show');
 

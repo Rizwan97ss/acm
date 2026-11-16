@@ -24,6 +24,16 @@ class UserPolicy
         return $actor->hasPermission('users.edit') && $this->canManage($actor, $target);
     }
 
+    /**
+     * Resetting someone else's two-factor sign-in; users manage their own from settings.
+     */
+    public function resetTwoFactor(User $actor, User $target): bool
+    {
+        return $actor->hasPermission('users.edit')
+            && ! $actor->is($target)
+            && $this->canManage($actor, $target);
+    }
+
     public function delete(User $actor, User $target): bool
     {
         return $actor->hasPermission('users.delete')

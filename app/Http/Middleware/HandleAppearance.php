@@ -10,6 +10,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class HandleAppearance
 {
+    /**
+     * The only values ever written into the page (the cookie is unencrypted and user-controlled).
+     */
+    public const array APPEARANCES = ['light', 'dark', 'system'];
+
     public function __construct(private SettingsService $settings) {}
 
     /**
@@ -24,7 +29,9 @@ class HandleAppearance
         $default = (string) $this->settings->current('branding.default_theme');
 
         View::share('defaultAppearance', $default);
-        View::share('appearance', $request->cookie('appearance') ?? $default);
+        $chosen = $request->cookie('appearance');
+
+        View::share('appearance', in_array($chosen, self::APPEARANCES, true) ? $chosen : $default);
 
         return $next($request);
     }

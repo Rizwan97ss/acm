@@ -261,7 +261,7 @@ export default function Documents({
                             className="flex flex-wrap items-center gap-3 px-4 py-3"
                         >
                             <span
-                                className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-indigo-500 text-[10px] font-bold text-white uppercase"
+                                className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-navy-500 text-[10px] font-bold text-white uppercase"
                                 aria-hidden
                             >
                                 {document.original_name.split('.').pop()}

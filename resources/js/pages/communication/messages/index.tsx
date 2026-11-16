@@ -239,7 +239,7 @@ function Thread({
                             className={cn(
                                 'max-w-[85%] rounded-2xl px-3.5 py-2 text-sm whitespace-pre-line',
                                 message.mine
-                                    ? 'rounded-br-sm bg-gradient-to-br from-violet-600 to-indigo-600 text-white'
+                                    ? 'rounded-br-sm bg-gradient-to-br from-royal-600 to-navy-600 text-white'
                                     : 'rounded-bl-sm bg-muted',
                             )}
                         >

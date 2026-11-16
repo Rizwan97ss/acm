@@ -57,7 +57,7 @@ export default function CertificatePrint({ certificate, school }: Props) {
                             className="h-20 w-20 object-contain"
                         />
                     )}
-                    <p className="text-2xl font-bold tracking-wide text-indigo-900">
+                    <p className="text-2xl font-bold tracking-wide text-navy-900">
                         {school.name}
                     </p>
                     <div
@@ -65,7 +65,7 @@ export default function CertificatePrint({ certificate, school }: Props) {
                         aria-hidden
                     />
                 </header>
-                <h1 className="relative mt-14 text-center font-serif text-4xl text-indigo-950">
+                <h1 className="relative mt-14 text-center font-serif text-4xl text-navy-950">
                     {certificate.title}
                 </h1>
                 <p className="relative mx-auto mt-12 max-w-[150mm] text-center font-serif text-lg leading-loose whitespace-pre-line">

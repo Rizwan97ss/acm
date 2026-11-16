@@ -731,6 +731,7 @@ export const guideSections: GuideSection[] = [
                 steps: [
                     'Open your name at the bottom of the menu, then Settings.',
                     'Profile changes your name and email. Security changes your password.',
+                    'Changing your password signs you out on every other device and cancels your API tokens.',
                 ],
                 link: { label: 'Profile', href: profile() },
             },
@@ -795,7 +796,7 @@ export const guideSections: GuideSection[] = [
                 title: 'I lost my phone with the authenticator app',
                 steps: [
                     'Sign in with one of your recovery codes instead of the six-digit code.',
-                    'If you have none left, contact your school’s technical administrator to regain access.',
+                    'If you have none left, ask an administrator to open your account under Administration → Users and choose Turn off two-factor. Then sign in with your password and set it up again.',
                 ],
             },
             {

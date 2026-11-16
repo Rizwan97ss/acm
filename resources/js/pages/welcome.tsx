@@ -33,13 +33,13 @@ const features = [
         icon: Wallet,
         title: 'Fees & finance',
         text: 'Fee structures, invoices, payments and payroll.',
-        tone: 'from-pink-500 to-fuchsia-500',
+        tone: 'from-gold-500 to-crimson-500',
     },
     {
         icon: GraduationCap,
         title: 'Academics',
         text: 'Academic years, classes, subjects and assignments.',
-        tone: 'from-violet-500 to-indigo-500',
+        tone: 'from-royal-500 to-navy-500',
     },
     {
         icon: ShieldCheck,
@@ -57,9 +57,9 @@ export default function Welcome() {
         <>
             <Head title="Welcome" />
             <div className="min-h-screen bg-background">
-                <div className="relative overflow-hidden bg-gradient-to-br from-indigo-700 via-violet-700 to-fuchsia-600 text-white">
+                <div className="relative overflow-hidden bg-gradient-to-br from-navy-950 via-navy-800 to-royal-700 text-white">
                     <div
-                        className="pointer-events-none absolute -top-32 -left-24 size-[28rem] rounded-full bg-fuchsia-400/30 blur-3xl"
+                        className="pointer-events-none absolute -top-32 -left-24 size-[28rem] rounded-full bg-gold-400/20 blur-3xl"
                         aria-hidden
                     />
                     <div
@@ -78,7 +78,7 @@ export default function Welcome() {
                         </div>
                         <Link
                             href={auth.user ? dashboard() : login()}
-                            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-indigo-700 shadow-lg shadow-indigo-950/30 transition hover:bg-indigo-50"
+                            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-navy-700 shadow-lg shadow-navy-950/30 transition hover:bg-navy-50"
                         >
                             {auth.user ? 'Open dashboard' : 'Sign in'}
                         </Link>
@@ -90,7 +90,7 @@ export default function Welcome() {
                         </p>
                         <h1 className="max-w-3xl text-4xl font-bold tracking-tight md:text-6xl">
                             Everything your school runs on,{' '}
-                            <span className="bg-gradient-to-r from-amber-200 via-pink-200 to-sky-200 bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-amber-200 via-gold-200 to-sky-200 bg-clip-text text-transparent">
                                 in one place.
                             </span>
                         </h1>
@@ -102,7 +102,7 @@ export default function Welcome() {
                         <div className="mt-8">
                             <Link
                                 href={auth.user ? dashboard() : login()}
-                                className="inline-flex rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-6 py-3 font-semibold text-indigo-950 shadow-xl shadow-orange-900/30 transition hover:brightness-105"
+                                className="inline-flex rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-6 py-3 font-semibold text-navy-950 shadow-xl shadow-orange-900/30 transition hover:brightness-105"
                             >
                                 {auth.user
                                     ? 'Go to your dashboard'
@@ -116,7 +116,7 @@ export default function Welcome() {
                     {features.map((feature) => (
                         <div
                             key={feature.title}
-                            className="relative rounded-2xl border bg-card p-6 shadow-lg shadow-indigo-500/5"
+                            className="relative rounded-2xl border bg-card p-6 shadow-lg shadow-navy-500/5"
                         >
                             <span
                                 className={`mb-4 inline-flex size-11 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-md ${feature.tone}`}

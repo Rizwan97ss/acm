@@ -17,4 +17,24 @@ return [
 
     'blind_index_key' => env('BLIND_INDEX_KEY'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Content Security Policy
+    |--------------------------------------------------------------------------
+    |
+    | Limits where the browser may load scripts, styles, images and fonts from,
+    | so an injected <script> cannot run. Scripts need a per-request nonce.
+    | Off by default in local development (the Vite dev server and debug
+    | tooling inject their own scripts). Set CSP_REPORT_ONLY=true to watch
+    | violations in the browser console without blocking anything.
+    | CSP_IMG_SOURCES adds space-separated image hosts (e.g. an S3 bucket URL).
+    |
+    */
+
+    'csp' => [
+        'enabled' => (bool) env('CSP_ENABLED', env('APP_ENV') !== 'local'),
+        'report_only' => (bool) env('CSP_REPORT_ONLY', false),
+        'img_sources' => array_values(array_filter(explode(' ', (string) env('CSP_IMG_SOURCES', '')))),
+    ],
+
 ];

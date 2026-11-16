@@ -19,8 +19,8 @@ type Scale = {
 const bandColors = [
     'from-emerald-500 to-teal-500',
     'from-sky-500 to-cyan-500',
-    'from-indigo-500 to-violet-500',
-    'from-violet-500 to-fuchsia-500',
+    'from-navy-500 to-royal-500',
+    'from-royal-500 to-crimson-500',
     'from-amber-500 to-orange-500',
     'from-orange-500 to-rose-500',
 ];

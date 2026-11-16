@@ -242,7 +242,12 @@ You're set up. Everything after this is day-to-day work.
 ### Securing accounts
 - Each user can turn on **two-factor login** and **passkeys** under **Settings → Security**.
 - **Settings → Security → Require two-factor** makes it mandatory for everyone.
-- Accounts can be **deactivated** under **Administration → Users**; they're signed out on their next request.
+- Accounts can be **deactivated** under **Administration → Users**; their sessions and API tokens end straight away.
+- **Lost authenticator:** an administrator opens the user under **Administration → Users** and chooses **Turn off two-factor** (never for their own account). It is recorded in the audit log.
+- Changing or resetting a password signs the person out on every other device and cancels their API tokens.
+- There is no public sign-up: accounts are created by administrators.
+- Forgot-password, password reset and password confirmation are rate-limited, like sign-in.
+- Pages are sent with a **Content-Security-Policy** (off in local development). Set `CSP_REPORT_ONLY=true` to only report problems, and `CSP_IMG_SOURCES` to allow an external image host such as an S3 bucket.
 - People are signed out automatically after the idle time set in Security settings.
 - Sensitive details (phone numbers, national IDs, medical notes, addresses, messages) are encrypted in the database and masked in logs.
 

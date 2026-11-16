@@ -56,7 +56,7 @@ export default function ExamsIndex({
                         className="group overflow-hidden rounded-2xl border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
                     >
                         <div
-                            className={`h-2 bg-gradient-to-r ${['from-indigo-500 to-fuchsia-500', 'from-emerald-500 to-sky-500', 'from-orange-500 to-pink-500'][i % 3]}`}
+                            className={`h-2 bg-gradient-to-r ${['from-navy-500 to-crimson-500', 'from-emerald-500 to-sky-500', 'from-orange-500 to-gold-500'][i % 3]}`}
                             aria-hidden
                         />
                         <div className="space-y-3 p-5">
@@ -71,7 +71,7 @@ export default function ExamsIndex({
                                     </p>
                                 </div>
                                 <FileText
-                                    className="size-5 text-indigo-500"
+                                    className="size-5 text-navy-500"
                                     aria-hidden
                                 />
                             </div>

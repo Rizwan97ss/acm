@@ -43,7 +43,7 @@ type Props = {
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const chip: Record<string, string> = {
     everyone:
-        'bg-violet-100 text-violet-800 dark:bg-violet-500/20 dark:text-violet-200',
+        'bg-royal-100 text-royal-800 dark:bg-royal-500/20 dark:text-royal-200',
     staff: 'bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200',
     students:
         'bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200',

@@ -69,11 +69,11 @@ export default function AttendanceRegister({
                     <caption className="sr-only">
                         Attendance register for {selected.month}
                     </caption>
-                    <thead className="bg-gradient-to-r from-indigo-50 to-fuchsia-50 dark:from-indigo-500/10 dark:to-fuchsia-500/10">
+                    <thead className="bg-gradient-to-r from-navy-50 to-crimson-50 dark:from-navy-500/10 dark:to-crimson-500/10">
                         <tr>
                             <th
                                 scope="col"
-                                className="sticky left-0 z-10 bg-indigo-50 px-3 py-2 text-left font-medium dark:bg-[oklch(0.21_0.03_278)]"
+                                className="sticky left-0 z-10 bg-navy-50 px-3 py-2 text-left font-medium dark:bg-[oklch(0.21_0.03_278)]"
                             >
                                 Student
                             </th>

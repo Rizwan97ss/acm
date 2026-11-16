@@ -21,7 +21,7 @@ export default function PageHeader({
                         {title}
                     </h1>
                     <div
-                        className="h-1 w-14 rounded-full bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-orange-400"
+                        className="h-1 w-14 rounded-full bg-gradient-to-r from-navy-600 via-royal-500 to-gold-400"
                         aria-hidden
                     />
                     {description && (

@@ -57,11 +57,11 @@ type DashboardProps = {
  * Each row is its own entity labelled by name, so rotating hues only add colour, never meaning.
  */
 const barColors = [
-    'from-indigo-500 to-violet-500',
+    'from-navy-500 to-royal-500',
     'from-emerald-500 to-teal-500',
     'from-orange-500 to-rose-500',
     'from-sky-500 to-cyan-500',
-    'from-pink-500 to-fuchsia-500',
+    'from-gold-500 to-crimson-500',
     'from-amber-500 to-orange-500',
 ];
 
@@ -118,7 +118,7 @@ export default function Dashboard({
     return (
         <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
             <Head title="Dashboard" />
-            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-6 text-white shadow-xl shadow-violet-500/20 md:p-8">
+            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy-900 via-navy-700 to-royal-600 p-6 text-white shadow-xl shadow-navy-900/25 md:p-8">
                 <div
                     className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-full bg-white/10"
                     aria-hidden

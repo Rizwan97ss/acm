@@ -14,9 +14,9 @@ export default function AuthSimpleLayout({
     const { branding, name } = usePage().props;
 
     return (
-        <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-700 via-violet-700 to-fuchsia-600 p-6 md:p-10">
+        <div className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-navy-950 via-navy-800 to-royal-700 p-6 md:p-10">
             <div
-                className="pointer-events-none absolute -top-24 -left-24 size-96 rounded-full bg-fuchsia-400/30 blur-3xl"
+                className="pointer-events-none absolute -top-24 -left-24 size-96 rounded-full bg-gold-400/20 blur-3xl"
                 aria-hidden
             />
             <div
@@ -49,7 +49,7 @@ export default function AuthSimpleLayout({
                     </span>
                 </Link>
 
-                <div className="rounded-2xl bg-card p-6 text-card-foreground shadow-2xl shadow-indigo-950/40 sm:p-8">
+                <div className="rounded-2xl bg-card p-6 text-card-foreground shadow-2xl shadow-navy-950/40 sm:p-8">
                     <div className="mb-6 space-y-1.5 text-center">
                         <h1 className="text-xl font-semibold">{title}</h1>
                         <p className="text-sm text-muted-foreground">

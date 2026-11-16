@@ -82,7 +82,7 @@ export default function PayrollRun({ run, payslips, can }: Props) {
                                         { preserveScroll: true },
                                     )
                                 }
-                                className="bg-gradient-to-r from-sky-600 to-indigo-600 text-white"
+                                className="bg-gradient-to-r from-sky-600 to-navy-600 text-white"
                             >
                                 <BadgeCheck aria-hidden /> Approve
                             </Button>
@@ -138,7 +138,7 @@ export default function PayrollRun({ run, payslips, can }: Props) {
             <div className="overflow-x-auto rounded-2xl border bg-card shadow-sm">
                 <table className="w-full min-w-[640px] text-sm">
                     <caption className="sr-only">Payslips</caption>
-                    <thead className="bg-gradient-to-r from-indigo-50 to-fuchsia-50 text-left text-xs text-indigo-950/70 uppercase dark:from-indigo-500/10 dark:to-fuchsia-500/10 dark:text-indigo-100/80">
+                    <thead className="bg-gradient-to-r from-navy-50 to-crimson-50 text-left text-xs text-navy-950/70 uppercase dark:from-navy-500/10 dark:to-crimson-500/10 dark:text-navy-100/80">
                         <tr>
                             <th scope="col" className="px-4 py-3 font-medium">
                                 Employee

@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Middleware\AddContentSecurityPolicy;
 use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\EnforceAccountSecurity;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LogActivity;
 use App\Http\Middleware\ResolveCurrentSchool;
+use App\Http\Middleware\ThrottleAuthEndpoints;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -29,6 +31,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             LogActivity::class,
+            AddContentSecurityPolicy::class,
+            ThrottleAuthEndpoints::class,
             ResolveCurrentSchool::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,

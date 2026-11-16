@@ -241,7 +241,7 @@ export default function FeeItems({
                         className="relative overflow-hidden rounded-2xl border bg-card p-5 shadow-sm"
                     >
                         <div
-                            className={`absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b ${['from-emerald-500 to-teal-500', 'from-indigo-500 to-violet-500', 'from-orange-500 to-pink-500', 'from-sky-500 to-cyan-500'][i % 4]}`}
+                            className={`absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b ${['from-emerald-500 to-teal-500', 'from-navy-500 to-royal-500', 'from-orange-500 to-gold-500', 'from-sky-500 to-cyan-500'][i % 4]}`}
                             aria-hidden
                         />
                         <div className="flex items-start justify-between gap-2">

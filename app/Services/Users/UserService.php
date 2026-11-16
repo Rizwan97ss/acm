@@ -15,6 +15,7 @@ class UserService
     public function __construct(
         private PermissionResolver $resolver,
         private AuditLogger $audit,
+        private SessionTerminator $sessions,
     ) {}
 
     /**
@@ -55,11 +56,36 @@ class UserService
                 $user->email_verified_at = now();
             }
 
+            $credentialsRevoked = $user->isDirty('password') || ($user->isDirty('is_active') && ! $user->is_active);
+
             $user->save();
 
             $this->syncRoles($actor, $user, $data['roles']);
 
+            if ($credentialsRevoked) {
+                $this->sessions->signOutEverywhere($user, $actor->is($user) ? session()->getId() : null);
+            }
+
             return $user;
+        });
+    }
+
+    /**
+     * Turn off a user's two-factor sign-in (e.g. a lost phone) so they can sign in with their
+     * password and enrol again. Their existing sessions and API tokens are ended too.
+     */
+    public function resetTwoFactor(User $actor, User $user): void
+    {
+        DB::transaction(function () use ($actor, $user): void {
+            $user->forceFill([
+                'two_factor_secret' => null,
+                'two_factor_recovery_codes' => null,
+                'two_factor_confirmed_at' => null,
+            ])->save();
+
+            $this->sessions->signOutEverywhere($user);
+
+            $this->audit->log('user.two_factor_reset', $user, [], [], $actor);
         });
     }
 

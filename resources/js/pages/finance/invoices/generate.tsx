@@ -198,7 +198,7 @@ export default function GenerateInvoices({ year, classes, feeItems }: Props) {
                                     className={cn(
                                         'flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-sm',
                                         checked &&
-                                            'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10',
+                                            'border-navy-500 bg-navy-50 dark:bg-navy-500/10',
                                     )}
                                 >
                                     <Checkbox

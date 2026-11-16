@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\PasswordUpdateRequest;
 use App\Http\Requests\Settings\TwoFactorAuthenticationRequest;
+use App\Services\Audit\AuditLogger;
+use App\Services\Users\SessionTerminator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -51,15 +53,22 @@ class SecurityController extends Controller
     }
 
     /**
-     * Update the user's password.
+     * Update the user's password and sign out every other session and API token.
      */
-    public function update(PasswordUpdateRequest $request): RedirectResponse
+    public function update(PasswordUpdateRequest $request, SessionTerminator $sessions, AuditLogger $audit): RedirectResponse
     {
-        $request->user()->update([
+        $user = $request->user();
+
+        $user->update([
             'password' => $request->password,
         ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Password updated.')]);
+        $request->session()->regenerate();
+        $ended = $sessions->signOutEverywhere($user, $request->session()->getId());
+
+        $audit->log('auth.password_changed', $user, [], $ended, $user);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Password updated. Other devices have been signed out.')]);
 
         return back();
     }

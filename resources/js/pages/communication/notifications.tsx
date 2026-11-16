@@ -12,10 +12,10 @@ import type { NotificationItem, PaginatedList } from '@/types/communication';
 type Props = { notifications: PaginatedList<NotificationItem> };
 
 const icons = {
-    announcement: { icon: Megaphone, className: 'from-pink-500 to-rose-500' },
+    announcement: { icon: Megaphone, className: 'from-gold-500 to-rose-500' },
     message: {
         icon: MessagesSquare,
-        className: 'from-violet-500 to-indigo-500',
+        className: 'from-royal-500 to-navy-500',
     },
     general: { icon: Bell, className: 'from-sky-500 to-cyan-500' },
 };

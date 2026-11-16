@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
-        <script>
+        <script nonce="{{ Vite::cspNonce() }}">
             (function() {
                 const appearance = '{{ $appearance ?? "system" }}';
 
@@ -22,11 +22,11 @@
         {{-- Inline style to set the HTML background color based on our theme in app.css --}}
         <style>
             html {
-                background-color: oklch(0.27 0.1 280);
+                background-color: oklch(0.24 0.075 264);
             }
 
             html.dark {
-                background-color: oklch(0.13 0.035 280);
+                background-color: oklch(0.13 0.035 264);
             }
         </style>
 

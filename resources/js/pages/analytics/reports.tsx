@@ -20,11 +20,11 @@ type Props = {
 };
 
 const tones = [
-    'from-violet-500 to-indigo-500',
+    'from-royal-500 to-navy-500',
     'from-emerald-500 to-teal-500',
     'from-sky-500 to-cyan-500',
     'from-orange-500 to-rose-500',
-    'from-pink-500 to-fuchsia-500',
+    'from-gold-500 to-crimson-500',
 ];
 
 export default function Reports({ reports, defaults }: Props) {

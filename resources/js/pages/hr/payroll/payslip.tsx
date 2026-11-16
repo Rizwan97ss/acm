@@ -41,13 +41,13 @@ export default function Payslip({ payslip }: Props) {
             <div className="flex w-full max-w-2xl justify-end print:hidden">
                 <Button
                     onClick={() => window.print()}
-                    className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white"
+                    className="bg-gradient-to-r from-royal-600 to-crimson-600 text-white"
                 >
                     <Printer aria-hidden /> Print
                 </Button>
             </div>
             <article className="w-full max-w-2xl overflow-hidden rounded-3xl border bg-card shadow-xl print:rounded-none print:border-0 print:shadow-none">
-                <header className="flex items-center gap-3 bg-gradient-to-r from-violet-700 to-fuchsia-600 px-6 py-5 text-white print:bg-none print:text-black">
+                <header className="flex items-center gap-3 bg-gradient-to-r from-royal-700 to-crimson-600 px-6 py-5 text-white print:bg-none print:text-black">
                     <span className="flex size-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/30">
                         <AppLogoIcon className="size-6 fill-current" />
                     </span>
@@ -145,7 +145,7 @@ export default function Payslip({ payslip }: Props) {
                             </div>
                         </section>
                     </div>
-                    <div className="rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 p-5 text-center text-white print:bg-none print:text-black print:ring-1 print:ring-black/20">
+                    <div className="rounded-2xl bg-gradient-to-br from-royal-600 to-crimson-600 p-5 text-center text-white print:bg-none print:text-black print:ring-1 print:ring-black/20">
                         <p className="text-xs text-white/85 uppercase print:text-black">
                             Net pay
                         </p>

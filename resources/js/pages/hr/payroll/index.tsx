@@ -98,7 +98,7 @@ export default function PayrollIndex({
                             <Button
                                 type="submit"
                                 disabled={form.processing}
-                                className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white"
+                                className="bg-gradient-to-r from-royal-600 to-crimson-600 text-white"
                             >
                                 <Calculator aria-hidden /> Calculate
                             </Button>

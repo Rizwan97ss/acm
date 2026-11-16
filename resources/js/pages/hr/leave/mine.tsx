@@ -31,9 +31,9 @@ type Balance = {
 
 const ringColors = [
     'from-emerald-500 to-teal-500',
-    'from-sky-500 to-indigo-500',
-    'from-orange-500 to-pink-500',
-    'from-violet-500 to-fuchsia-500',
+    'from-sky-500 to-navy-500',
+    'from-orange-500 to-gold-500',
+    'from-royal-500 to-crimson-500',
 ];
 
 export default function MyLeave({
@@ -211,7 +211,7 @@ export default function MyLeave({
                                 <Button
                                     type="submit"
                                     disabled={form.processing}
-                                    className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
+                                    className="bg-gradient-to-r from-navy-600 to-royal-600 text-white"
                                 >
                                     Submit request
                                 </Button>

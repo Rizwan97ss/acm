@@ -39,7 +39,7 @@ export default function VerifyCertificate({ result }: Props) {
     const Icon = styles.icon;
 
     return (
-        <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-4 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
+        <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-navy-50 via-white to-royal-50 p-4 dark:from-slate-950 dark:via-slate-900 dark:to-navy-950">
             <Head title="Certificate verification" />
             <div className="w-full max-w-md overflow-hidden rounded-2xl bg-card text-card-foreground shadow-xl">
                 <div

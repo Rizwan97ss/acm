@@ -92,7 +92,7 @@ export default function MarksEntry({
                 <div className="overflow-x-auto rounded-2xl border bg-card shadow-sm">
                     <table className="w-full min-w-[620px] text-sm">
                         <caption className="sr-only">Marks entry</caption>
-                        <thead className="bg-gradient-to-r from-indigo-50 to-fuchsia-50 text-left text-xs text-indigo-950/70 uppercase dark:from-indigo-500/10 dark:to-fuchsia-500/10 dark:text-indigo-100/80">
+                        <thead className="bg-gradient-to-r from-navy-50 to-crimson-50 text-left text-xs text-navy-950/70 uppercase dark:from-navy-500/10 dark:to-crimson-500/10 dark:text-navy-100/80">
                             <tr>
                                 <th
                                     scope="col"
@@ -218,7 +218,7 @@ export default function MarksEntry({
                     <Button
                         type="submit"
                         disabled={form.processing}
-                        className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
+                        className="bg-gradient-to-r from-navy-600 to-royal-600 text-white"
                     >
                         Save marks
                     </Button>

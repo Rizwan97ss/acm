@@ -57,14 +57,14 @@ export default function ReportCard({
             <div className="flex w-full max-w-3xl justify-end print:hidden">
                 <Button
                     onClick={() => window.print()}
-                    className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
+                    className="bg-gradient-to-r from-navy-600 to-royal-600 text-white"
                 >
                     <Printer aria-hidden /> Print
                 </Button>
             </div>
 
             <article className="w-full max-w-3xl overflow-hidden rounded-3xl border bg-card shadow-xl print:rounded-none print:border-0 print:shadow-none">
-                <header className="flex items-center gap-4 bg-gradient-to-r from-indigo-700 via-violet-700 to-fuchsia-600 px-6 py-5 text-white print:bg-none print:text-black">
+                <header className="flex items-center gap-4 bg-gradient-to-r from-navy-700 via-royal-700 to-crimson-600 px-6 py-5 text-white print:bg-none print:text-black">
                     <span className="flex size-12 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/30">
                         {branding?.logoUrl ? (
                             <img
@@ -89,7 +89,7 @@ export default function ReportCard({
 
                 <div className="space-y-6 p-6">
                     {!exam.published && (
-                        <p className="rounded-xl bg-amber-100 px-4 py-2 text-sm text-amber-900 print:hidden">
+                        <p className="rounded-xl bg-amber-100 px-4 py-2 text-sm text-amber-900 dark:bg-amber-500/15 dark:text-amber-200 print:hidden">
                             Draft — results are not yet published to students
                             and parents.
                         </p>
@@ -220,7 +220,7 @@ export default function ReportCard({
                                     {
                                         label: 'Total',
                                         value: `${result.total} / ${result.max_total}`,
-                                        tone: 'from-indigo-500 to-violet-600',
+                                        tone: 'from-navy-500 to-royal-600',
                                     },
                                     {
                                         label: 'Percentage',
@@ -241,7 +241,7 @@ export default function ReportCard({
                                             result.rank !== null
                                                 ? `${result.rank} of ${result.class_size}`
                                                 : '—',
-                                        tone: 'from-orange-500 to-pink-600',
+                                        tone: 'from-orange-500 to-gold-600',
                                     },
                                 ].map((tile) => (
                                     <div

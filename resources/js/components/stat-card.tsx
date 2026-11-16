@@ -4,11 +4,11 @@ import { cn } from '@/lib/utils';
 export type StatTone = 'violet' | 'emerald' | 'orange' | 'sky' | 'pink';
 
 const tones: Record<StatTone, string> = {
-    violet: 'from-violet-600 to-indigo-600 shadow-indigo-500/25',
+    violet: 'from-royal-600 to-navy-600 shadow-navy-500/25',
     emerald: 'from-emerald-600 to-teal-600 shadow-emerald-500/25',
     orange: 'from-orange-600 to-rose-600 shadow-orange-500/25',
     sky: 'from-sky-600 to-cyan-700 shadow-sky-500/25',
-    pink: 'from-pink-600 to-fuchsia-600 shadow-pink-500/25',
+    pink: 'from-gold-600 to-crimson-700 shadow-gold-500/25',
 };
 
 type StatCardProps = {

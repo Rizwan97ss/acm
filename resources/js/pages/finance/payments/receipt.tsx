@@ -56,7 +56,7 @@ export default function Receipt({ payment }: Props) {
                 </header>
                 <div className="space-y-5 p-6 text-sm">
                     {payment.reversed && (
-                        <p className="rounded-lg bg-rose-100 px-3 py-2 font-semibold text-rose-800">
+                        <p className="rounded-lg bg-rose-100 px-3 py-2 font-semibold text-rose-800 dark:bg-rose-500/15 dark:text-rose-300">
                             This payment has been reversed.
                         </p>
                     )}

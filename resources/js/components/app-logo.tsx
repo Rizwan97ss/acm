@@ -8,7 +8,7 @@ export default function AppLogo() {
 
     return (
         <>
-            <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-fuchsia-500 via-violet-500 to-indigo-500 text-white shadow-md shadow-fuchsia-900/30">
+            <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-gold-300 via-gold-400 to-gold-600 text-navy-950 shadow-md ring-1 shadow-gold-950/40 ring-white/20">
                 {branding?.logoUrl ? (
                     <img
                         src={branding.logoUrl}

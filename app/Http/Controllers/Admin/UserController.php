@@ -88,6 +88,7 @@ class UserController extends Controller
                 'school_id' => $user->school_id,
                 'role_ids' => $user->roles->pluck('id'),
             ],
+            'canResetTwoFactor' => $request->user()->can('resetTwoFactor', $user),
         ]);
     }
 

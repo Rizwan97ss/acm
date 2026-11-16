@@ -44,7 +44,7 @@ type Props = {
 };
 
 const accents: Record<string, string> = {
-    everyone: 'from-violet-500 to-indigo-500',
+    everyone: 'from-royal-500 to-navy-500',
     staff: 'from-sky-500 to-cyan-500',
     students: 'from-amber-500 to-orange-500',
     guardians: 'from-emerald-500 to-teal-500',

@@ -75,7 +75,7 @@ export default function SectionResults({ exam, section, papers, rows }: Props) {
                     <caption className="sr-only">
                         Results for {section.name}
                     </caption>
-                    <thead className="bg-gradient-to-r from-indigo-50 to-fuchsia-50 text-left text-xs text-indigo-950/70 uppercase dark:from-indigo-500/10 dark:to-fuchsia-500/10 dark:text-indigo-100/80">
+                    <thead className="bg-gradient-to-r from-navy-50 to-crimson-50 text-left text-xs text-navy-950/70 uppercase dark:from-navy-500/10 dark:to-crimson-500/10 dark:text-navy-100/80">
                         <tr>
                             <th scope="col" className="px-3 py-3 font-medium">
                                 Rank
@@ -121,7 +121,7 @@ export default function SectionResults({ exam, section, papers, rows }: Props) {
                         {rows.map((row) => (
                             <tr
                                 key={row.student.id}
-                                className="hover:bg-indigo-50/60 dark:hover:bg-indigo-500/5"
+                                className="hover:bg-navy-50/60 dark:hover:bg-navy-500/5"
                             >
                                 <td className="px-3 py-2">
                                     {row.rank !== null ? (

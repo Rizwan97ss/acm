@@ -15,8 +15,8 @@ const toneClasses: Record<NavTone, string> = {
     sky: 'text-sky-300',
     amber: 'text-amber-300',
     emerald: 'text-emerald-300',
-    pink: 'text-pink-300',
-    violet: 'text-violet-300',
+    pink: 'text-gold-300',
+    violet: 'text-royal-300',
 };
 
 /**
@@ -61,14 +61,15 @@ export function NavMain({
                                 asChild
                                 isActive={active}
                                 tooltip={{ children: item.title }}
-                                className="data-[active=true]:bg-gradient-to-r data-[active=true]:from-sidebar-accent data-[active=true]:to-sidebar-accent/40 data-[active=true]:font-medium data-[active=true]:shadow-sm"
+                                className="data-[active=true]:bg-gradient-to-r data-[active=true]:from-sidebar-accent data-[active=true]:to-sidebar-accent/40 data-[active=true]:font-medium data-[active=true]:shadow-[inset_3px_0_0_var(--sidebar-primary)]"
                             >
                                 <Link href={item.href} prefetch>
                                     {item.icon && (
                                         <item.icon
                                             className={cn(
                                                 toneClasses[tone],
-                                                active && 'text-white',
+                                                active &&
+                                                    'text-sidebar-primary',
                                             )}
                                         />
                                     )}

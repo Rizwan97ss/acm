@@ -197,7 +197,7 @@ export default function AttendanceIndex({
                                     className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center"
                                 >
                                     <div className="flex min-w-0 flex-1 items-center gap-3">
-                                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-xs font-semibold text-white">
+                                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-navy-500 to-royal-500 text-xs font-semibold text-white">
                                             {row.roll_number ?? '–'}
                                         </span>
                                         <div className="min-w-0">
@@ -295,7 +295,7 @@ export default function AttendanceIndex({
                         <Button
                             type="submit"
                             disabled={form.processing}
-                            className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
+                            className="bg-gradient-to-r from-navy-600 to-royal-600 text-white"
                         >
                             Save attendance
                         </Button>

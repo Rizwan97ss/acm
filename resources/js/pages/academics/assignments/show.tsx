@@ -136,7 +136,7 @@ function SubmitForm({
             <Button
                 type="submit"
                 disabled={form.processing}
-                className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
+                className="bg-gradient-to-r from-navy-600 to-royal-600 text-white"
             >
                 {existing ? 'Update submission' : 'Submit'}
             </Button>

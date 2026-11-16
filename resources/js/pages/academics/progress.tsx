@@ -47,9 +47,9 @@ type Child = {
 };
 
 const ringColors = [
-    'from-indigo-500 to-fuchsia-500',
+    'from-navy-500 to-crimson-500',
     'from-emerald-500 to-sky-500',
-    'from-orange-500 to-pink-500',
+    'from-orange-500 to-gold-500',
 ];
 
 function AttendanceRing({ percentage }: { percentage: number | null }) {
@@ -170,7 +170,7 @@ export default function Progress({
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <FileBadge
-                                        className="size-4 text-indigo-500"
+                                        className="size-4 text-navy-500"
                                         aria-hidden
                                     />{' '}
                                     Results
@@ -196,7 +196,7 @@ export default function Progress({
                                                             '—'}
                                                         %
                                                     </span>
-                                                    <span className="rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 px-2 py-0.5 text-xs font-bold text-white">
+                                                    <span className="rounded-md bg-gradient-to-br from-navy-500 to-royal-600 px-2 py-0.5 text-xs font-bold text-white">
                                                         {result.grade ?? '—'}
                                                     </span>
                                                 </span>
