@@ -17,6 +17,8 @@ export type Auth = {
     isSuperAdmin: boolean;
     isPortalUser: boolean;
     unreadNotifications: number;
+    /** Minutes of inactivity before sign-out; 0 when disabled. */
+    idleTimeout: number;
 };
 
 export type Passkey = {

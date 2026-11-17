@@ -61,6 +61,7 @@ class HandleInertiaRequests extends Middleware
                 'isSuperAdmin' => fn (): bool => $user?->isSuperAdmin() ?? false,
                 'isPortalUser' => fn (): bool => $user !== null && app(PortalScope::class)->isPortalUser($user),
                 'unreadNotifications' => fn (): int => $user?->unreadNotifications()->count() ?? 0,
+                'idleTimeout' => fn (): int => $user !== null ? (int) $this->settings->get('security.session_idle_timeout') : 0,
             ],
             'tenant' => fn (): array => [
                 'current' => $school ? [

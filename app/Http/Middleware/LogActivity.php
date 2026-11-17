@@ -20,6 +20,11 @@ class LogActivity
     public const string CHANNEL = 'activity';
 
     /**
+     * Background requests that would only add noise (the idle-timer keep-alive).
+     */
+    public const array QUIET_ROUTES = ['session.heartbeat'];
+
+    /**
      * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
@@ -31,7 +36,7 @@ class LogActivity
         $route = $request->route();
         $action = $route?->getActionName();
 
-        if ($route === null || $action === null || $action === 'Closure') {
+        if ($route === null || $action === null || $action === 'Closure' || in_array($route->getName(), self::QUIET_ROUTES, true)) {
             return $response;
         }
 

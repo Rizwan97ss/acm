@@ -245,7 +245,7 @@ return [
                 'security.session_idle_timeout' => [
                     'label' => 'Idle session timeout (minutes)',
                     'type' => 'integer',
-                    'default' => 0,
+                    'default' => 10,
                     'rules' => ['required', 'integer', 'min:0', 'max:1440'],
                     'scopes' => ['global'],
                     'description' => '0 disables the idle timeout.',

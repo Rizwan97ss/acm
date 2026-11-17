@@ -90,6 +90,7 @@ test('late returns record a fine and free the copy', function () {
     $loan = LibraryLoan::query()->sole();
 
     Date::setTestNow(now()->addDays(17));
+    $this->flushSession();
 
     $this->actingAs($setup['librarian'])->post(route('library.loans.return', $loan))->assertSessionHasNoErrors();
     $this->actingAs($setup['librarian'])->post(route('library.loans.return', $loan))->assertSessionHasErrors('loan');
@@ -104,6 +105,7 @@ test('a student\'s fine is billed once on a fee invoice credited to other income
     issueBook($setup, $setup['book'], $setup['student']->admission_no);
     $loan = LibraryLoan::query()->sole();
     Date::setTestNow(now()->addDays(17));
+    $this->flushSession();
 
     $this->actingAs($setup['librarian'])->post(route('library.loans.return', $loan))->assertSessionHasNoErrors();
     app(LibraryService::class)->billFine($loan->fresh(), $setup['librarian']);
@@ -123,6 +125,7 @@ test('fines are not billed for staff or when billing is turned off', function ()
     issueBook($setup, $setup['book'], $setup['student']->admission_no);
     issueBook($setup, $second, Employee::factory()->create(['school_id' => $setup['school']->id])->employee_no);
     Date::setTestNow(now()->addDays(17));
+    $this->flushSession();
 
     foreach (LibraryLoan::query()->get() as $loan) {
         $this->actingAs($setup['librarian'])->post(route('library.loans.return', $loan))->assertSessionHasNoErrors();
