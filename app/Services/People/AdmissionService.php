@@ -109,17 +109,7 @@ class AdmissionService
      */
     private function findOrCreateGuardian(AdmissionApplication $application): Guardian
     {
-        $phoneIndex = (new Guardian)->blindIndexFor('phone', $application->guardian_phone);
-
-        $existing = Guardian::query()
-            ->where(function ($query) use ($phoneIndex, $application): void {
-                $query->where('phone_index', $phoneIndex);
-
-                if ($application->guardian_email !== null) {
-                    $query->orWhere('email', Str::lower($application->guardian_email));
-                }
-            })
-            ->first();
+        $existing = $this->guardians->findMatching($application->guardian_phone, $application->guardian_email);
 
         if ($existing !== null) {
             return $existing;

@@ -7,6 +7,7 @@ use App\Models\Guardian;
 use App\Models\Student;
 use App\Services\Audit\AuditLogger;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -15,6 +16,32 @@ use Illuminate\Validation\ValidationException;
 class GuardianService
 {
     public function __construct(private AuditLogger $audit) {}
+
+    /**
+     * An existing guardian of the current school (siblings share one) matched by exact phone
+     * (through its blind index) or email.
+     */
+    public function findMatching(?string $phone, ?string $email): ?Guardian
+    {
+        $phoneIndex = $phone !== null && $phone !== '' ? (new Guardian)->blindIndexFor('phone', $phone) : null;
+        $email = $email !== null && $email !== '' ? Str::lower(trim($email)) : null;
+
+        if ($phoneIndex === null && $email === null) {
+            return null;
+        }
+
+        return Guardian::query()
+            ->where(function ($query) use ($phoneIndex, $email): void {
+                if ($phoneIndex !== null) {
+                    $query->where('phone_index', $phoneIndex);
+                }
+
+                if ($email !== null) {
+                    $query->orWhere('email', $email);
+                }
+            })
+            ->first();
+    }
 
     public function link(Student $student, Guardian $guardian, GuardianRelationship $relationship, bool $isPrimary, bool $isEmergencyContact = true): void
     {

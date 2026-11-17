@@ -1,5 +1,5 @@
 import { Link, router, useForm } from '@inertiajs/react';
-import { BookOpen, Library, Pencil, Plus } from 'lucide-react';
+import { BookOpen, Library, Pencil, FileUp, Plus } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
 import ConfirmDelete from '@/components/confirm-delete';
@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { destroy, index, store, update } from '@/routes/library/books';
 import { index as loans } from '@/routes/library/loans';
+import { show as importPage } from '@/routes/imports';
 import type { PaginatedList } from '@/types/communication';
 
 type Book = {
@@ -194,6 +195,13 @@ export default function Books({
                                 <BookOpen aria-hidden /> Loans
                             </Link>
                         </Button>
+                        {can.create && (
+                            <Button variant="outline" asChild>
+                                <Link href={importPage('library-books')}>
+                                    <FileUp aria-hidden /> Import
+                                </Link>
+                            </Button>
+                        )}
                         {can.create && (
                             <Button onClick={() => setEditing('new')}>
                                 <Plus aria-hidden /> Add book

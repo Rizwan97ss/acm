@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { KeyRound, Plus } from 'lucide-react';
+import { KeyRound, FileUp, Plus } from 'lucide-react';
 import type { Column } from '@/components/data/data-table';
 import { DataTable } from '@/components/data/data-table';
 import Pagination from '@/components/data/pagination';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
 import { useTableFilters } from '@/hooks/use-table-filters';
+import { show as importPage } from '@/routes/imports';
 import { create, index, show } from '@/routes/people/students';
 import type { EnumOption, Paginated, SectionOption, Student } from '@/types';
 
@@ -114,11 +115,18 @@ export default function StudentsIndex({
                 description="Student records, their current class and portal access."
                 actions={
                     can.create && (
-                        <Button asChild>
-                            <Link href={create()}>
-                                <Plus aria-hidden /> New student
-                            </Link>
-                        </Button>
+                        <>
+                            <Button variant="outline" asChild>
+                                <Link href={importPage('students')}>
+                                    <FileUp aria-hidden /> Import
+                                </Link>
+                            </Button>
+                            <Button asChild>
+                                <Link href={create()}>
+                                    <Plus aria-hidden /> New student
+                                </Link>
+                            </Button>
+                        </>
                     )
                 }
             />

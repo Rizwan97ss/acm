@@ -6,6 +6,7 @@ import {
     CalendarX,
     Coins,
     FileSpreadsheet,
+    FileUp,
     HandCoins,
     Landmark,
     LineChart,
@@ -57,6 +58,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard, help } from '@/routes';
 import { insights } from '@/routes/analytics';
+import { index as imports } from '@/routes/imports';
 import { index as announcements } from '@/routes/communication/announcements';
 import { index as events } from '@/routes/communication/events';
 import { index as messages } from '@/routes/communication/messages';
@@ -144,6 +146,18 @@ function navGroups(singleInstitute: boolean): NavGroup[] {
                     href: staff(),
                     icon: Briefcase,
                     permissions: ['employees.view', 'teachers.view'],
+                },
+                {
+                    title: 'Bulk import',
+                    href: imports(),
+                    icon: FileUp,
+                    permissions: [
+                        'students.create',
+                        'employees.create',
+                        'teachers.create',
+                        'admissions.create',
+                        'library.create',
+                    ],
                 },
             ],
         },

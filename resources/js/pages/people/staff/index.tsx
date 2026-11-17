@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Pencil, Plus } from 'lucide-react';
+import { Pencil, FileUp, Plus } from 'lucide-react';
 import ConfirmDelete from '@/components/confirm-delete';
 import type { Column } from '@/components/data/data-table';
 import { DataTable } from '@/components/data/data-table';
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
 import { useTableFilters } from '@/hooks/use-table-filters';
+import { show as importPage } from '@/routes/imports';
 import { create, destroy, edit, index } from '@/routes/people/staff';
 import type { Employee, EnumOption, Paginated } from '@/types';
 
@@ -136,11 +137,18 @@ export default function StaffIndex({
                 }
                 actions={
                     can.create && (
-                        <Button asChild>
-                            <Link href={create()}>
-                                <Plus aria-hidden /> New staff member
-                            </Link>
-                        </Button>
+                        <>
+                            <Button variant="outline" asChild>
+                                <Link href={importPage('staff')}>
+                                    <FileUp aria-hidden /> Import
+                                </Link>
+                            </Button>
+                            <Button asChild>
+                                <Link href={create()}>
+                                    <Plus aria-hidden /> New staff member
+                                </Link>
+                            </Button>
+                        </>
                     )
                 }
             />

@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { FileUp, Plus } from 'lucide-react';
 import type { Column } from '@/components/data/data-table';
 import { DataTable } from '@/components/data/data-table';
 import Pagination from '@/components/data/pagination';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useFormat } from '@/hooks/use-format';
 import { useTableFilters } from '@/hooks/use-table-filters';
 import { cn } from '@/lib/utils';
+import { show as importPage } from '@/routes/imports';
 import { create, index, show } from '@/routes/people/admissions';
 import type { AdmissionApplication, EnumOption, Paginated } from '@/types';
 
@@ -96,11 +97,18 @@ export default function AdmissionsIndex({
                 description="Applications move from pending to approved or rejected, then approved applicants are enrolled."
                 actions={
                     can.create && (
-                        <Button asChild>
-                            <Link href={create()}>
-                                <Plus aria-hidden /> New application
-                            </Link>
-                        </Button>
+                        <>
+                            <Button variant="outline" asChild>
+                                <Link href={importPage('admissions')}>
+                                    <FileUp aria-hidden /> Import
+                                </Link>
+                            </Button>
+                            <Button asChild>
+                                <Link href={create()}>
+                                    <Plus aria-hidden /> New application
+                                </Link>
+                            </Button>
+                        </>
                     )
                 }
             />

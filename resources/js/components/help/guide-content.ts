@@ -43,6 +43,7 @@ import { index as invoices } from '@/routes/finance/invoices';
 import { index as payments } from '@/routes/finance/payments';
 import { mine as myLeave, requests as leaveRequests } from '@/routes/hr/leave';
 import { index as payroll, mine as myPayslips } from '@/routes/hr/payroll';
+import { index as imports } from '@/routes/imports';
 import { index as libraryBooks } from '@/routes/library/books';
 import { index as libraryLoans } from '@/routes/library/loans';
 import { index as notifications } from '@/routes/notifications';
@@ -365,6 +366,17 @@ export const guideSections: GuideSection[] = [
                 ],
                 tip: 'National ID, medical notes and address are encrypted and only shown to people who may edit the student.',
                 link: { label: 'Students', href: students() },
+            },
+            {
+                title: 'Import many records from Excel',
+                steps: [
+                    'Open Bulk import (or choose Import on the Students, Staff, Admissions or Library page) and pick what to import.',
+                    'Download the Excel template and fill one row per record on the Data sheet. The Instructions sheet explains every column.',
+                    'Upload the file and choose Check file. Every row is checked and problems are listed by row number; nothing is saved yet.',
+                    'Fix any problems, upload again, then choose Import. All rows are saved together, or none are.',
+                ],
+                tip: 'For students, fill Class and Section to enrol them in the current year, and the Parent columns to add the parent. Children with the same parent phone or email share one parent record.',
+                link: { label: 'Bulk import', href: imports() },
             },
             {
                 title: 'Invite a student or parent to the portal',
