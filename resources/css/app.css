@@ -13,6 +13,9 @@
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
+    --font-display:
+        'Instrument Serif', ui-serif, Georgia, Cambria, 'Times New Roman', serif;
+
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
@@ -188,5 +191,76 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+/* Landing page motion: content is only hidden once React has added `landing-motion`. */
+html.landing-motion [data-reveal] {
+    transition:
+        opacity 0.7s ease,
+        transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+}
+
+html.landing-motion [data-reveal]:not([data-visible]) {
+    opacity: 0;
+    transform: translateY(18px);
+}
+
+:root:has(.landing-page) {
+    scroll-behavior: smooth;
+}
+
+@keyframes landing-float {
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.landing-float {
+    animation: landing-float 6s ease-in-out infinite;
+}
+
+@keyframes landing-sway {
+    50% {
+        transform: rotate(-3deg) translateY(-4px);
+    }
+}
+
+.landing-sway {
+    animation: landing-sway 7s ease-in-out infinite;
+}
+
+@keyframes landing-draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.landing-draw {
+    stroke-dasharray: 420;
+    stroke-dashoffset: 420;
+    animation: landing-draw 1.1s 0.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html.landing-motion [data-reveal] {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none;
+    }
+
+    :root:has(.landing-page) {
+        scroll-behavior: auto;
+    }
+
+    .landing-float,
+    .landing-sway {
+        animation: none;
+    }
+
+    .landing-draw {
+        animation: none;
+        stroke-dashoffset: 0;
     }
 }

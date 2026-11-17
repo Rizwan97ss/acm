@@ -29,6 +29,7 @@ return [
         'settings' => ['label' => 'Settings', 'group' => 'Administration', 'actions' => ['view', 'edit']],
         'audit_logs' => ['label' => 'Audit Logs', 'group' => 'Administration', 'actions' => ['view', 'export']],
         'integrations' => ['label' => 'API & Webhooks', 'group' => 'Administration', 'actions' => ['view', 'create', 'edit', 'delete']],
+        'inquiries' => ['label' => 'Website Enquiries', 'group' => 'Administration', 'actions' => ['view', 'delete']],
 
         // Academics
         'academic_years' => ['label' => 'Academic Years', 'group' => 'Academics', 'actions' => $crud],
@@ -94,7 +95,7 @@ return [
             'name' => 'Principal',
             'description' => 'Academic leadership with approval rights.',
             'permissions' => ['*.view', '*.export', '*.approve', 'announcements.*', 'events.*', 'certificates.*'],
-            'except' => ['schools.export', 'settings.view'],
+            'except' => ['schools.export', 'settings.view', 'inquiries.view'],
         ],
         'teacher' => [
             'name' => 'Teacher',

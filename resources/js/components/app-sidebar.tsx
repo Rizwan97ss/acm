@@ -37,6 +37,7 @@ import {
     GraduationCap,
     HeartHandshake,
     History,
+    Inbox,
     LayoutGrid,
     Settings2,
     ShieldCheck,
@@ -87,6 +88,7 @@ import { edit as periods } from '@/routes/academics/periods';
 import { index as subjects } from '@/routes/academics/subjects';
 import { index as timetable } from '@/routes/academics/timetable';
 import { index as activityLogs } from '@/routes/admin/activity-logs';
+import { index as inquiries } from '@/routes/admin/inquiries';
 import { index as auditLogs } from '@/routes/admin/audit-logs';
 import { index as roles } from '@/routes/admin/roles';
 import { index as schools } from '@/routes/admin/schools';
@@ -429,6 +431,12 @@ function navGroups(singleInstitute: boolean): NavGroup[] {
                     href: activityLogs(),
                     icon: Activity,
                     permissions: ['audit_logs.view'],
+                },
+                {
+                    title: 'Website enquiries',
+                    href: inquiries(),
+                    icon: Inbox,
+                    permissions: ['inquiries.view'],
                 },
                 {
                     title: 'Webhooks',

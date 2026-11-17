@@ -251,6 +251,11 @@ You're set up. Everything after this is day-to-day work.
 - People are signed out automatically after the idle time set in Security settings.
 - Sensitive details (phone numbers, national IDs, medical notes, addresses, messages) are encrypted in the database and masked in logs.
 
+### Landing page and website enquiries
+- The public home page (`/`) presents the product. Its figures (modules, roles, permissions, API endpoints) are counted live from the app.
+- Edit wording, contact details, social links, legal links, testimonials and client names in `resources/js/components/landing/content.ts` (the `owner` block). Empty values stay hidden; testimonial placeholders only appear in development.
+- The contact form saves enquiries (spam-trapped, 5 per minute per address, phone encrypted). Read, mark and delete them under **Administration → Website enquiries** (`inquiries.view` / `inquiries.delete`; school admins have them, principals don't). Run `php artisan rbac:sync` after deploying.
+
 ### Audit log and activity log
 | Page | What it shows |
 |---|---|

@@ -1,135 +1,105 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
+import type { Option } from '@/components/landing/contact';
+import Contact from '@/components/landing/contact';
 import {
-    CalendarDays,
-    ClipboardCheck,
-    GraduationCap,
-    ShieldCheck,
-    Users,
-    Wallet,
-} from 'lucide-react';
-import AppLogoIcon from '@/components/app-logo-icon';
-import { dashboard, login } from '@/routes';
+    CtaBand,
+    Faq,
+    Plans,
+    Testimonials,
+} from '@/components/landing/conversion';
+import type { Facts } from '@/components/landing/features';
+import {
+    FeatureTour,
+    Integrations,
+    Security,
+    Stats,
+} from '@/components/landing/features';
+import Hero from '@/components/landing/hero';
+import LandingFooter from '@/components/landing/landing-footer';
+import LandingNav from '@/components/landing/landing-nav';
+import { useLandingMotion } from '@/components/landing/motion';
+import {
+    About,
+    HowItWorks,
+    Modules,
+    UseCases,
+    WhyUs,
+} from '@/components/landing/sections';
 
-const features = [
-    {
-        icon: Users,
-        title: 'Students & families',
-        text: 'Admissions, enrolment, guardians and portal access in one place.',
-        tone: 'from-emerald-500 to-teal-500',
-    },
-    {
-        icon: CalendarDays,
-        title: 'Timetables',
-        text: 'Clash-free schedules for every section, teacher and room.',
-        tone: 'from-amber-500 to-orange-500',
-    },
-    {
-        icon: ClipboardCheck,
-        title: 'Attendance & results',
-        text: 'Daily attendance, examinations, grading and report cards.',
-        tone: 'from-sky-500 to-cyan-500',
-    },
-    {
-        icon: Wallet,
-        title: 'Fees & finance',
-        text: 'Fee structures, invoices, payments and payroll.',
-        tone: 'from-gold-500 to-crimson-500',
-    },
-    {
-        icon: GraduationCap,
-        title: 'Academics',
-        text: 'Academic years, classes, subjects and assignments.',
-        tone: 'from-royal-500 to-navy-500',
-    },
-    {
-        icon: ShieldCheck,
-        title: 'Secure by design',
-        text: 'Role-based access, two-factor sign-in, encryption and audit trail.',
-        tone: 'from-rose-500 to-orange-500',
-    },
-];
+type Props = {
+    facts: Facts;
+    inquiryOptions: { interests: Option[]; schoolSizes: Option[] };
+};
 
-export default function Welcome() {
-    const { auth, branding, name } = usePage().props;
-    const title = branding?.name ?? name;
+const description =
+    'A complete, secure school management ERP: admissions, timetables, attendance, exams, fees, payroll and parent communication in one connected system.';
+
+export default function Welcome({ facts, inquiryOptions }: Props) {
+    const { branding, name } = usePage().props;
+    const brand = branding?.name ?? name;
+
+    useLandingMotion();
 
     return (
         <>
-            <Head title="Welcome" />
-            <div className="min-h-screen bg-background">
-                <div className="relative overflow-hidden bg-gradient-to-br from-navy-950 via-navy-800 to-royal-700 text-white">
-                    <div
-                        className="pointer-events-none absolute -top-32 -left-24 size-[28rem] rounded-full bg-gold-400/20 blur-3xl"
-                        aria-hidden
+            <Head title="School management ERP">
+                <meta
+                    head-key="description"
+                    name="description"
+                    content={description}
+                />
+                <meta head-key="og:type" property="og:type" content="website" />
+                <meta
+                    head-key="og:title"
+                    property="og:title"
+                    content={`${brand} | School management ERP`}
+                />
+                <meta
+                    head-key="og:description"
+                    property="og:description"
+                    content={description}
+                />
+                <meta
+                    head-key="twitter:card"
+                    name="twitter:card"
+                    content="summary"
+                />
+            </Head>
+
+            <div className="landing-page min-h-screen bg-background text-foreground">
+                <a
+                    href="#main"
+                    className="sr-only z-[60] rounded-full bg-navy-900 px-4 py-2 text-white focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+                >
+                    Skip to content
+                </a>
+                <LandingNav brand={brand} />
+
+                <main id="main">
+                    <Hero modules={facts.modules} />
+                    <Stats facts={facts} />
+                    <About />
+                    <Modules count={facts.modules} />
+                    <WhyUs />
+                    <HowItWorks />
+                    <FeatureTour />
+                    <Security />
+                    <CtaBand
+                        title="Ready to see it with your own data?"
+                        text="Book a walkthrough and we’ll show you the workflows that matter most to your school."
                     />
-                    <div
-                        className="pointer-events-none absolute -right-32 bottom-0 size-[30rem] rounded-full bg-sky-400/25 blur-3xl"
-                        aria-hidden
+                    <UseCases />
+                    <Integrations facts={facts} />
+                    <Testimonials />
+                    <Plans />
+                    <Faq />
+                    <Contact
+                        interests={inquiryOptions.interests}
+                        schoolSizes={inquiryOptions.schoolSizes}
                     />
+                </main>
 
-                    <header className="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
-                        <div className="flex items-center gap-3">
-                            <span className="flex size-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/30 backdrop-blur">
-                                <AppLogoIcon className="size-6 fill-current" />
-                            </span>
-                            <span className="font-semibold tracking-tight">
-                                {title}
-                            </span>
-                        </div>
-                        <Link
-                            href={auth.user ? dashboard() : login()}
-                            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-navy-700 shadow-lg shadow-navy-950/30 transition hover:bg-navy-50"
-                        >
-                            {auth.user ? 'Open dashboard' : 'Sign in'}
-                        </Link>
-                    </header>
-
-                    <section className="relative mx-auto max-w-6xl px-4 pt-12 pb-24 sm:px-6 md:pt-20 md:pb-32">
-                        <p className="mb-4 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-medium ring-1 ring-white/25">
-                            School management, made simple
-                        </p>
-                        <h1 className="max-w-3xl text-4xl font-bold tracking-tight md:text-6xl">
-                            Everything your school runs on,{' '}
-                            <span className="bg-gradient-to-r from-amber-200 via-gold-200 to-sky-200 bg-clip-text text-transparent">
-                                in one place.
-                            </span>
-                        </h1>
-                        <p className="mt-5 max-w-2xl text-base text-white/85 md:text-lg">
-                            Students, staff, timetables, attendance, results and
-                            fees — for administrators, teachers, students and
-                            parents.
-                        </p>
-                        <div className="mt-8">
-                            <Link
-                                href={auth.user ? dashboard() : login()}
-                                className="inline-flex rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-6 py-3 font-semibold text-navy-950 shadow-xl shadow-orange-900/30 transition hover:brightness-105"
-                            >
-                                {auth.user
-                                    ? 'Go to your dashboard'
-                                    : 'Sign in to continue'}
-                            </Link>
-                        </div>
-                    </section>
-                </div>
-
-                <section className="mx-auto -mt-16 grid max-w-6xl gap-4 px-4 pb-16 sm:grid-cols-2 sm:px-6 lg:grid-cols-3">
-                    {features.map((feature) => (
-                        <div
-                            key={feature.title}
-                            className="relative rounded-2xl border bg-card p-6 shadow-lg shadow-navy-500/5"
-                        >
-                            <span
-                                className={`mb-4 inline-flex size-11 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-md ${feature.tone}`}
-                            >
-                                <feature.icon className="size-5" aria-hidden />
-                            </span>
-                            <h2 className="font-semibold">{feature.title}</h2>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                {feature.text}
-                            </p>
-                        </div>
-                    ))}
-                </section>
+                <LandingFooter brand={brand} />
             </div>
         </>
     );

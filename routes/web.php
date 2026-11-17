@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\ContactInquiryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HelpController;
+use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'welcome')->name('home');
+Route::get('/', WelcomeController::class)->name('home');
+Route::post('contact', [ContactInquiryController::class, 'store'])->middleware('throttle:5,1')->name('contact.store');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');

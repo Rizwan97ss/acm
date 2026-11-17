@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
         Artisan::call('rbac:sync');
 
         if (! app()->isProduction()) {
-            $this->call(DemoSeeder::class);
+            $this->call([DemoSeeder::class, DemoSchoolDataSeeder::class, DemoActivitySeeder::class]);
         }
     }
 }
