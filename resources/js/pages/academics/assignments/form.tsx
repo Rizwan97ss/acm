@@ -1,4 +1,8 @@
-import { Link, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
+import { Paperclip } from 'lucide-react';
+import { fileSize } from '@/components/learning/format';
+import StudentChooser from '@/components/learning/student-chooser';
+import { destroy as destroyFile } from '@/routes/academics/assignments/files';
 import type { FormEvent } from 'react';
 import FormField from '@/components/form-field';
 import PageHeader from '@/components/page-header';
@@ -16,8 +20,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { index, show, store, update } from '@/routes/academics/assignments';
 import type { AssignmentSummary, EnumOption, SectionOption } from '@/types';
 
+type Attachment = { id: number; name: string; size: number; url: string };
+
 type Props = {
-    assignment: AssignmentSummary | null;
+    assignment:
+        | (AssignmentSummary & {
+              student_ids?: number[];
+              attachments?: Attachment[];
+          })
+        | null;
     sections: SectionOption[];
     subjectsByClass: Record<string, { id: number; name: string }[]>;
     types: EnumOption[];
@@ -43,6 +54,8 @@ export default function AssignmentForm({
             assignment?.max_marks === undefined
                 ? ''
                 : String(assignment.max_marks),
+        student_ids: assignment?.student_ids ?? ([] as number[]),
+        attachments: [] as File[],
     });
     const section = sections.find(
         (item) => item.id === Number(form.data.section_id),
@@ -55,9 +68,16 @@ export default function AssignmentForm({
         event.preventDefault();
 
         if (assignment) {
-            form.put(update.url(assignment.id), { preserveScroll: true });
+            form.transform((data) => ({ ...data, _method: 'put' }));
+            form.post(update.url(assignment.id), {
+                preserveScroll: true,
+                forceFormData: true,
+            });
         } else {
-            form.post(store.url(), { preserveScroll: true });
+            form.post(store.url(), {
+                preserveScroll: true,
+                forceFormData: true,
+            });
         }
     };
 
@@ -223,6 +243,80 @@ export default function AssignmentForm({
                                 }
                             />
                         </FormField>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="grid gap-5 pt-6">
+                        <FormField
+                            id="attachments"
+                            label="Attach files"
+                            error={form.errors.attachments}
+                            description="Worksheets, slides, audio or video for students to open with the task."
+                        >
+                            <Input
+                                id="attachments"
+                                type="file"
+                                multiple
+                                onChange={(event) =>
+                                    form.setData(
+                                        'attachments',
+                                        Array.from(event.target.files ?? []),
+                                    )
+                                }
+                            />
+                        </FormField>
+                        {assignment?.attachments &&
+                            assignment.attachments.length > 0 && (
+                                <ul className="divide-y rounded-xl border text-sm">
+                                    {assignment.attachments.map((file) => (
+                                        <li
+                                            key={file.id}
+                                            className="flex items-center gap-3 px-3 py-2"
+                                        >
+                                            <Paperclip
+                                                className="size-4 text-muted-foreground"
+                                                aria-hidden
+                                            />
+                                            <a
+                                                href={file.url}
+                                                className="min-w-0 flex-1 truncate hover:underline"
+                                            >
+                                                {file.name}
+                                            </a>
+                                            <span className="text-xs text-muted-foreground">
+                                                {fileSize(file.size)}
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="ghost"
+                                                className="text-destructive"
+                                                onClick={() =>
+                                                    router.delete(
+                                                        destroyFile.url({
+                                                            assignment:
+                                                                assignment.id,
+                                                            file: file.id,
+                                                        }),
+                                                        {
+                                                            preserveScroll: true,
+                                                        },
+                                                    )
+                                                }
+                                            >
+                                                Remove
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        <StudentChooser
+                            classId={section?.school_class_id ?? ''}
+                            sectionId={section?.id ?? ''}
+                            value={form.data.student_ids}
+                            onChange={(ids) => form.setData('student_ids', ids)}
+                            error={form.errors.student_ids}
+                        />
                     </CardContent>
                 </Card>
                 <div className="flex gap-2">

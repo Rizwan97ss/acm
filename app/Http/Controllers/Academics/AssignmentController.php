@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Academics\AssignmentRequest;
 use App\Models\AcademicYear;
 use App\Models\Assignment;
+use App\Models\AssignmentFile;
 use App\Models\AssignmentSubmission;
 use App\Models\Enrollment;
 use App\Models\Section;
@@ -17,11 +18,15 @@ use App\Services\Academics\AcademicOptions;
 use App\Services\Academics\AssignmentService;
 use App\Services\Academics\AttendanceService;
 use App\Services\Academics\TeachingScope;
+use App\Services\Learning\LearningFiles;
+use App\Services\Learning\LearningNotifier;
+use App\Services\Learning\LearningScope;
 use App\Services\People\PortalScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -38,6 +43,9 @@ class AssignmentController extends Controller
         private PortalScope $portalScope,
         private AcademicOptions $options,
         private AssignmentService $assignments,
+        private LearningFiles $files,
+        private LearningNotifier $notifier,
+        private LearningScope $learning,
     ) {}
 
     public function index(Request $request): Response
@@ -60,6 +68,9 @@ class AssignmentController extends Controller
             ->when($year, fn (Builder $query, AcademicYear $year) => $query->where('academic_year_id', $year->id))
             ->when($sectionIds !== null, fn (Builder $query) => $query->whereIn('section_id', $sectionIds))
             ->when($filters['section_id'] ?? null, fn (Builder $query, int $sectionId) => $query->where('section_id', $sectionId))
+            ->when($studentIds !== [], fn (Builder $query) => $query->where(fn (Builder $query) => $query
+                ->whereDoesntHave('students')
+                ->orWhereHas('students', fn (Builder $students) => $students->whereIn('students.id', $studentIds))))
             ->when(($filters['when'] ?? 'upcoming') === 'upcoming', fn (Builder $query) => $query->whereDate('due_on', '>=', now()->toDateString()), fn (Builder $query) => $query->whereDate('due_on', '<', now()->toDateString()))
             ->orderBy('due_on', ($filters['when'] ?? 'upcoming') === 'upcoming' ? 'asc' : 'desc')
             ->orderBy('id')
@@ -109,12 +120,19 @@ class AssignmentController extends Controller
         $year = AcademicYear::query()->current()->firstOrFail();
         $section = $this->authorizedSection($request, $year);
 
-        $assignment = Assignment::query()->create([
-            ...$request->validated(),
-            'school_id' => $section->school_id,
-            'academic_year_id' => $year->id,
-            'created_by' => $request->user()->id,
-        ]);
+        $assignment = DB::transaction(function () use ($request, $section, $year): Assignment {
+            $assignment = Assignment::query()->create([
+                ...$request->safe()->except(['student_ids', 'attachments']),
+                'school_id' => $section->school_id,
+                'academic_year_id' => $year->id,
+                'created_by' => $request->user()->id,
+            ]);
+            $assignment->students()->sync($this->chosenStudents($request, $section, $year->id));
+
+            return $assignment;
+        });
+
+        $this->storeAttachments($request, $assignment);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Assignment set for :section.', ['section' => $section->fullName()])]);
 
@@ -144,8 +162,26 @@ class AssignmentController extends Controller
                 ->values()
             : $attendance->roster($assignment->section, $this->year($assignment))->map(fn (Enrollment $enrollment) => $enrollment->student);
 
+        $chosen = $assignment->students()->pluck('students.id');
+
+        if ($chosen->isNotEmpty()) {
+            $roster = $roster->filter(fn (Student $student): bool => $chosen->contains($student->id))->values();
+        }
+
+        $files = AssignmentFile::query()->where('assignment_id', $assignment->id)->get();
+        $presentFile = fn (AssignmentFile $file): array => [
+            'id' => $file->id,
+            'name' => $file->original_name,
+            'size' => $file->size,
+            'url' => $this->files->assignmentFileUrl($file),
+        ];
+
         return Inertia::render('academics/assignments/show', [
-            'assignment' => $this->present($assignment),
+            'assignment' => [
+                ...$this->present($assignment),
+                'attachments' => $files->whereNull('assignment_submission_id')->map($presentFile)->values(),
+                'for_chosen_students' => $chosen->isNotEmpty(),
+            ],
             'students' => $roster->map(fn (Student $student): array => [
                 'id' => $student->id,
                 'name' => $student->full_name,
@@ -157,6 +193,7 @@ class AssignmentController extends Controller
                     'marks' => $submission->marks !== null ? (float) $submission->marks : null,
                     'feedback' => $submission->feedback,
                     'graded' => $submission->graded_at !== null,
+                    'files' => $files->where('assignment_submission_id', $submission->id)->map($presentFile)->values(),
                 ] : null,
             ])->values(),
             'can' => [
@@ -173,7 +210,12 @@ class AssignmentController extends Controller
 
         return Inertia::render('academics/assignments/form', [
             ...$this->formOptions($request),
-            'assignment' => $this->present($assignment->load(['section.schoolClass', 'subject'])),
+            'assignment' => [
+                ...$this->present($assignment->load(['section.schoolClass', 'subject'])),
+                'student_ids' => $assignment->students()->pluck('students.id'),
+                'attachments' => AssignmentFile::query()->where('assignment_id', $assignment->id)->whereNull('assignment_submission_id')->get()
+                    ->map(fn (AssignmentFile $file): array => ['id' => $file->id, 'name' => $file->original_name, 'size' => $file->size, 'url' => $this->files->assignmentFileUrl($file)])->values(),
+            ],
         ]);
     }
 
@@ -182,7 +224,14 @@ class AssignmentController extends Controller
         abort_unless($this->canManage($request->user(), $assignment), 403);
         $this->authorizedSection($request, $this->year($assignment));
 
-        $assignment->update($request->validated());
+        $section = Section::query()->findOrFail($request->integer('section_id'));
+
+        DB::transaction(function () use ($request, $assignment, $section): void {
+            $assignment->update($request->safe()->except(['student_ids', 'attachments']));
+            $assignment->students()->sync($this->chosenStudents($request, $section, $assignment->academic_year_id));
+        });
+
+        $this->storeAttachments($request, $assignment);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Assignment updated.')]);
 
@@ -193,7 +242,9 @@ class AssignmentController extends Controller
     {
         abort_unless($request->user()->can('delete', $assignment) && $this->canManage($request->user(), $assignment), 403);
 
+        $files = AssignmentFile::query()->where('assignment_id', $assignment->id)->get(['disk', 'path']);
         $assignment->delete();
+        $files->each(fn (AssignmentFile $file) => $this->files->delete($file->disk, $file->path));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Assignment deleted.')]);
 
@@ -208,8 +259,31 @@ class AssignmentController extends Controller
         $student = $request->user()->student;
         abort_if($student === null || $request->user()->employee()->exists(), 403);
 
-        $validated = $request->validate(['content' => ['required', 'string', 'max:20000']]);
-        $this->assignments->submit($student, $assignment, $validated['content']);
+        $extensions = implode(',', (array) config('lms.submission_extensions'));
+        $validated = $request->validate([
+            'content' => ['required_without:files', 'nullable', 'string', 'max:20000'],
+            'files' => ['nullable', 'array', 'max:5'],
+            'files.*' => ['file', 'max:'.((int) config('lms.submission_max_mb') * 1024), "extensions:{$extensions}", "mimes:{$extensions}"],
+        ], ['files.*.extensions' => __('This file type cannot be handed in.'), 'files.*.mimes' => __('This file type cannot be handed in.')]);
+
+        $submission = $this->assignments->submit($student, $assignment, (string) ($validated['content'] ?? ''));
+
+        if ($request->hasFile('files')) {
+            $old = AssignmentFile::query()->where('assignment_submission_id', $submission->id)->get();
+            $old->each(fn (AssignmentFile $file) => $this->files->delete($file->disk, $file->path));
+            AssignmentFile::query()->whereKey($old->modelKeys())->delete();
+
+            foreach ((array) $request->file('files') as $upload) {
+                $stored = $this->files->store($upload, $assignment->school_id, "assignments/{$assignment->id}/submissions", 'files');
+                AssignmentFile::query()->create([
+                    ...collect($stored)->except('kind')->all(),
+                    'school_id' => $assignment->school_id,
+                    'assignment_id' => $assignment->id,
+                    'assignment_submission_id' => $submission->id,
+                    'uploaded_by' => $request->user()->id,
+                ]);
+            }
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Your work has been submitted.')]);
 
@@ -227,6 +301,10 @@ class AssignmentController extends Controller
         ]);
 
         $this->assignments->grade($request->user(), $submission, isset($validated['marks']) ? (float) $validated['marks'] : null, $validated['feedback'] ?? null);
+
+        if (($studentUser = $submission->student?->user) !== null) {
+            $this->notifier->assignmentGraded($studentUser, $assignment->title, $assignment->id);
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Feedback saved.')]);
 
@@ -255,12 +333,67 @@ class AssignmentController extends Controller
 
         $sectionIds = $this->visibleSectionIds($user, $this->year($assignment));
         abort_unless($sectionIds === null || in_array($assignment->section_id, $sectionIds, true), 403);
+
+        if ($this->portalScope->isPortalUser($user)) {
+            $chosen = $assignment->students()->pluck('students.id');
+            abort_unless($chosen->isEmpty() || $chosen->intersect($this->portalScope->studentIds($user))->isNotEmpty(), 403);
+        }
     }
 
     private function canManage(User $user, Assignment $assignment): bool
     {
         return $user->can('update', $assignment)
             && ($assignment->created_by === $user->id || $this->scope->supervises($user, 'assignments'));
+    }
+
+    /**
+     * The teacher removes one of their attachments.
+     */
+    public function destroyFile(Request $request, Assignment $assignment, AssignmentFile $file): RedirectResponse
+    {
+        abort_unless($file->assignment_id === $assignment->id && $file->assignment_submission_id === null, 404);
+        abort_unless($this->canManage($request->user(), $assignment), 403);
+
+        $file->delete();
+        $this->files->delete($file->disk, $file->path);
+
+        return back();
+    }
+
+    /**
+     * Chosen students must be enrolled in the assignment's section.
+     *
+     * @return list<int>
+     */
+    private function chosenStudents(AssignmentRequest $request, Section $section, int $yearId): array
+    {
+        $ids = array_values(array_map('intval', (array) $request->validated('student_ids', [])));
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $eligible = collect($this->learning->rosterFor($yearId, $section->school_class_id, $section->id))->pluck('id')->all();
+
+        if (array_diff($ids, $eligible) !== []) {
+            throw ValidationException::withMessages(['student_ids' => __('Some chosen students are not in this section.')]);
+        }
+
+        return $ids;
+    }
+
+    private function storeAttachments(AssignmentRequest $request, Assignment $assignment): void
+    {
+        foreach ((array) $request->file('attachments', []) as $upload) {
+            $stored = $this->files->store($upload, $assignment->school_id, "assignments/{$assignment->id}", 'attachments');
+
+            AssignmentFile::query()->create([
+                ...collect($stored)->except('kind')->all(),
+                'school_id' => $assignment->school_id,
+                'assignment_id' => $assignment->id,
+                'uploaded_by' => $request->user()->id,
+            ]);
+        }
     }
 
     /**

@@ -19,8 +19,8 @@ class SyncPermissions extends Command
     public function handle(PermissionRegistry $registry, PermissionResolver $resolver): int
     {
         DB::transaction(function () use ($registry): void {
-            $this->syncPermissions($registry);
-            $this->syncSystemRoles($registry);
+            $added = $this->syncPermissions($registry);
+            $this->syncSystemRoles($registry, $added);
         });
 
         $resolver->flush();
@@ -30,11 +30,16 @@ class SyncPermissions extends Command
         return self::SUCCESS;
     }
 
-    private function syncPermissions(PermissionRegistry $registry): void
+    /**
+     * @return list<string> permissions created by this run (new modules or actions)
+     */
+    private function syncPermissions(PermissionRegistry $registry): array
     {
+        $added = [];
+
         foreach ($registry->modules() as $module => $definition) {
             foreach ($definition['actions'] as $action) {
-                Permission::query()->updateOrCreate(
+                $permission = Permission::query()->updateOrCreate(
                     ['name' => "{$module}.{$action}"],
                     [
                         'module' => $module,
@@ -42,6 +47,10 @@ class SyncPermissions extends Command
                         'description' => Str::ucfirst($action).' '.Str::lower($definition['label']),
                     ],
                 );
+
+                if ($permission->wasRecentlyCreated) {
+                    $added[] = $permission->name;
+                }
             }
         }
 
@@ -51,13 +60,18 @@ class SyncPermissions extends Command
             $this->components->warn('Removing permissions no longer declared: '.$stale->pluck('name')->implode(', '));
             $stale->delete();
         }
+
+        return $added;
     }
 
     /**
      * Create missing system roles. Existing roles keep their permissions unless --reset-roles is given,
-     * so administrators' changes survive deployments.
+     * so administrators' changes survive deployments; permissions introduced by this run (a new
+     * module or action) are added to the system roles whose defaults include them.
+     *
+     * @param  list<string>  $added
      */
-    private function syncSystemRoles(PermissionRegistry $registry): void
+    private function syncSystemRoles(PermissionRegistry $registry, array $added): void
     {
         $permissionIds = Permission::query()->pluck('id', 'name');
 
@@ -71,12 +85,14 @@ class SyncPermissions extends Command
                 'is_system' => true,
             ])->save();
 
-            if ($isNew || $this->option('reset-roles')) {
-                $names = $slug === config('rbac.super_admin_role')
-                    ? []
-                    : $registry->expand($definition['permissions'], $definition['except'] ?? []);
+            $names = $slug === config('rbac.super_admin_role')
+                ? []
+                : $registry->expand($definition['permissions'], $definition['except'] ?? []);
 
+            if ($isNew || $this->option('reset-roles')) {
                 $role->permissions()->sync($permissionIds->only($names)->values());
+            } elseif ($added !== []) {
+                $role->permissions()->syncWithoutDetaching($permissionIds->only(array_values(array_intersect($names, $added)))->values());
             }
         }
     }

@@ -16,6 +16,11 @@ import {
     Wallet,
 } from 'lucide-react';
 import { dashboard, help } from '@/routes';
+import { index as learn } from '@/routes/learn';
+import { dashboard as learningOverview } from '@/routes/learning';
+import { index as learningCourses } from '@/routes/learning/courses';
+import { index as learningLiveClasses } from '@/routes/learning/live-classes';
+import { index as learningQuizzes } from '@/routes/learning/quizzes';
 import { progress } from '@/routes/academics';
 import { index as academicYears } from '@/routes/academics/academic-years';
 import { index as assignments } from '@/routes/academics/assignments';
@@ -287,6 +292,70 @@ export const guideSections: GuideSection[] = [
                     'Switch to a section view to see a whole class’s week.',
                 ],
                 link: { label: 'Timetable', href: timetable() },
+            },
+        ],
+    },
+    {
+        id: 'learning',
+        title: 'Online learning (LMS)',
+        description:
+            'Courses, lessons, files, live classes and quizzes for your classes.',
+        icon: BookOpen,
+        tone: 'violet',
+        visible: (viewer) =>
+            !viewer.isPortalUser &&
+            viewer.canAny([
+                'courses.create',
+                'live_classes.create',
+                'quizzes.create',
+            ]),
+        topics: [
+            {
+                title: 'Build a course',
+                steps: [
+                    'Open Learning → Courses and choose New course.',
+                    'Pick the class, an optional section and the subject. You can only pick classes and subjects you teach.',
+                    'Add chapters, then lessons inside each chapter. Open a lesson to write notes and add materials.',
+                    'Set the course and each lesson to Published when students should see them. Students are notified once.',
+                ],
+                tip: 'Leave Section on “All sections” to share with the whole class, or tick “Only selected students” for extension or catch-up work.',
+                link: { label: 'Courses', href: learningCourses() },
+            },
+            {
+                title: 'Add files and links',
+                steps: [
+                    'In the lesson editor, upload PDFs, Word, PowerPoint, Excel, MP3, MP4 or images, or add any https:// link.',
+                    'Untick “Students may download” to make a file view-only.',
+                    'Files are private: students open them through short-lived links, only if the lesson is for them.',
+                ],
+                tip: 'Your school’s upload limit and storage quota are shown above the materials list.',
+            },
+            {
+                title: 'Run a live class',
+                steps: [
+                    'Open Learning → Live classes → Schedule class and paste the Zoom, Meet or Teams link.',
+                    'Students are notified straight away and reminded shortly before the start.',
+                    'They can join from their learning page a few minutes before it starts; the link is not shown earlier.',
+                ],
+                link: { label: 'Live classes', href: learningLiveClasses() },
+            },
+            {
+                title: 'Set a quiz or test',
+                steps: [
+                    'Open Learning → Quizzes & tests → New quiz, then add questions: single or multiple choice, true/false, short answer or essay.',
+                    'Publish it. Choice, true/false and short answers with accepted answers are marked automatically.',
+                    'Open a student’s attempt from Results to mark essays and add feedback.',
+                ],
+                tip: 'Questions lock once a student starts, so everyone is marked on the same paper.',
+                link: { label: 'Quizzes & tests', href: learningQuizzes() },
+            },
+            {
+                title: 'Follow progress',
+                steps: [
+                    'Learning overview shows course completion, quiz averages and live classes coming up.',
+                    'Student engagement combines lessons completed, quiz scores, homework handed in and recent activity, and lists who may need a nudge.',
+                ],
+                link: { label: 'Learning overview', href: learningOverview() },
             },
         ],
     },
@@ -604,6 +673,17 @@ export const guideSections: GuideSection[] = [
         tone: 'emerald',
         visible: (viewer) => viewer.isPortalUser,
         topics: [
+            {
+                title: 'Learn online',
+                steps: [
+                    'Open My learning to see your courses, live classes, quizzes and homework.',
+                    'Open a lesson to read the notes, watch videos, listen to audio and open files. Choose Mark complete when you are done.',
+                    'Bookmark lessons to find them again; Continue takes you back to where you stopped.',
+                    'Join live classes from My learning when the Join button turns on, a few minutes before the start.',
+                ],
+                tip: 'Parents see the same page for their child, read-only. Use the child picker when you have more than one.',
+                link: { label: 'My learning', href: learn() },
+            },
             {
                 title: 'My progress',
                 steps: [

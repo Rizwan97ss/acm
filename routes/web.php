@@ -29,3 +29,4 @@ require __DIR__.'/communication.php';
 require __DIR__.'/library.php';
 require __DIR__.'/operations.php';
 require __DIR__.'/imports.php';
+require __DIR__.'/learning.php';

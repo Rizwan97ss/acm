@@ -275,6 +275,7 @@ Run `php artisan rbac:sync` on every deploy, after migrations.
 | 6 ✅  | Python analytics service, reports and exports, forecasting                                                                |
 | 7 ✅  | Library, transport, inventory, communication (announcements, events, messages, notifications), documents and certificates |
 | 8 ✅  | Webhooks, public API (`/api/v1`) with Sanctum tokens, mobile sign-in, API tokens settings page |
+| 9 ✅  | Learning management: courses, lessons, secure materials, live classes, quizzes & tests, assignment upgrades, learning analytics (Python) |
 
 ### Phase 2 notes
 
@@ -355,4 +356,15 @@ Hosting for the Python analytics service, with its shared secret set
 npm run build, then php artisan migrate --force, php artisan rbac:sync and the config, route and view cache commands
 Database backups, and a mail service for password resets and invites
 6. Admin account: if your account still has no roles, run php artisan rbac:grant-super-admin admin@gmail.com.
+
+### Phase 9 notes (Learning management)
+
+- **Model:** `Course` (year + class + optional section + subject, optional chosen students via `course_student`) → `CourseChapter` → `Lesson` → `LessonMaterial` (file or link). `LessonProgress` (views, completion), `LessonBookmark`. `LiveClass` (encrypted meeting URL). `Quiz` → `QuizQuestion` (options + hidden answer key) → `QuizAttempt` → `QuizAnswer`. Assignments gained `AssignmentFile` (teacher attachments and student hand-ins) and `assignment_student`. Every table carries `school_id` with `BelongsToSchool`.
+- **Permissions:** `courses.*`, `live_classes.*`, `quizzes.*` (approve = whole-school oversight). Teachers get create/edit/delete; students and parents get view. Run `php artisan rbac:sync` after deploying.
+- **Scope (`LearningScope`):** staff may target a class/section/subject when `TeachingScope::canTeachSubject` allows it for that section (or any section of the class for class-wide content); authors and supervisors may always manage their records. Students see published content for their current enrollment: class-wide or their section, and only courses without chosen students or that include them. Parents see their children's learning read-only (`?student=`).
+- **Files (`LearningFiles`):** private disk `config('lms.disk')`, path `lms/{school}/…/{uuid}.{ext}`, extension + MIME validation, per-school quota (`lms.storage_quota_mb`) across lesson materials and assignment files. Served only via `URL::temporarySignedRoute` + an access re-check in `LearningFileController`; local files use `BinaryFileResponse` (HTTP ranges for video seeking), S3-style disks redirect to a temporary URL. Office files are download-only; PDFs/audio/video/images render inline.
+- **Notifications (`LearningNotifier`, `LearningUpdate`):** course/lesson published (once, `notified_at`), quiz published, live class scheduled/changed/cancelled/reminder (`reminded_at`), quiz and assignment marked. `lms:dispatch` (every 5 min, per school in its own tenant context) announces items whose publish time arrives and sends reminders.
+- **Quizzes (`QuizService`):** one open attempt at a time, `max_attempts`, deadline = earlier of time limit and `closes_at` with 90 s grace; late hand-ins score nothing. Objective and keyed short answers are auto-marked; essays leave the attempt `submitted` until `grade()`.
+- **Analytics:** `LearningInsights` computes course completion and quiz averages in MySQL and sends per-student counts (ids only) to Python `POST /v1/learning/engagement`, which scores completion 40 %, quizzes 25 %, homework 20 %, recency 15 % (rescaled when a signal does not apply) and bands students low/medium/high with reasons. Results are cached hourly; the dashboard loads them as deferred props and degrades gracefully if the service is down.
+- **Feature switch:** `lms.enabled` per school (`EnsureLearningEnabled`, shared prop `features.learning` hides the sidebar group).
 

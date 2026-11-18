@@ -16,6 +16,7 @@ declare module '@inertiajs/core' {
             branding: Branding;
             preferences: Preferences;
             sidebarOpen: boolean;
+            features: { learning?: boolean };
             [key: string]: unknown;
         };
     }

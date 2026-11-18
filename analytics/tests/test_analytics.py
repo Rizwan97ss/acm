@@ -93,3 +93,34 @@ def test_html_report_escapes_title(signed_post):
 
 def test_invalid_payload_is_rejected(signed_post):
     assert signed_post("/v1/finance/forecast", {"months": [{"month": "January", "billed": 1, "collected": 1, "expenses": 1}]}).status_code == 422
+
+
+def test_learning_engagement_scores_bands_and_reasons(signed_post):
+    students = [
+        {"student_id": 1, "section": "5-A", "lessons_available": 10, "lessons_completed": 10, "days_since_active": 0, "quiz_average": 92, "work_due": 4, "work_submitted": 4},
+        {"student_id": 2, "section": "5-A", "lessons_available": 10, "lessons_completed": 1, "days_since_active": None, "quiz_average": 30, "work_due": 4, "work_submitted": 1},
+        {"student_id": 3, "section": "5-B", "lessons_available": 10, "lessons_completed": 6, "days_since_active": 5, "quiz_average": None, "work_due": 0, "work_submitted": 0},
+    ]
+    result = signed_post("/v1/learning/engagement", {"students": students}).json()
+
+    ordered = [s["student_id"] for s in result["students"]]
+    assert ordered[0] == 2 and ordered[-1] == 1
+    assert result["students"][0]["band"] == "low"
+    assert "few lessons completed" in result["students"][0]["reasons"]
+    assert "not active recently" in result["students"][0]["reasons"]
+    assert result["students"][-1]["score"] == 98.0
+    assert {b["band"]: b["students"] for b in result["bands"]}["high"] >= 1
+    assert result["summary"]["students"] == 3
+    assert result["summary"]["inactive_30_days"] == 1
+
+
+def test_learning_engagement_ignores_signals_that_do_not_apply(signed_post):
+    students = [{"student_id": 9, "lessons_available": 4, "lessons_completed": 4, "days_since_active": 0, "work_due": 0, "work_submitted": 0}]
+    result = signed_post("/v1/learning/engagement", {"students": students}).json()
+
+    assert result["students"][0]["score"] == 100.0
+    assert result["students"][0]["submission"] is None
+
+
+def test_learning_engagement_empty(signed_post):
+    assert signed_post("/v1/learning/engagement", {"students": []}).json()["summary"] is None

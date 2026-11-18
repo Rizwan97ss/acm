@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -76,5 +77,25 @@ class Assignment extends Model
     public function submissions(): HasMany
     {
         return $this->hasMany(AssignmentSubmission::class);
+    }
+
+    /**
+     * Files the teacher attached (not those handed in with submissions).
+     *
+     * @return HasMany<AssignmentFile, $this>
+     */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(AssignmentFile::class)->whereNull('assignment_submission_id');
+    }
+
+    /**
+     * When any are chosen, only these students of the section receive the work.
+     *
+     * @return BelongsToMany<Student, $this>
+     */
+    public function students(): BelongsToMany
+    {
+        return $this->belongsToMany(Student::class, 'assignment_student');
     }
 }

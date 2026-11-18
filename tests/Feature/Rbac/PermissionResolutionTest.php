@@ -73,3 +73,18 @@ test('the first super admin can be granted from the console', function () {
         ->and($user->fresh()->school_id)->toBeNull();
     $this->artisan('rbac:grant-super-admin', ['email' => 'nobody@example.com'])->assertFailed();
 });
+
+test('a sync grants newly introduced permissions to existing system roles but keeps removals', function () {
+    $this->artisan('rbac:sync')->assertSuccessful();
+    $teacher = Role::query()->where('slug', 'teacher')->whereNull('school_id')->firstOrFail();
+
+    $teacher->permissions()->detach(Permission::query()->where('name', 'attendance.edit')->value('id'));
+    Permission::query()->where('module', 'quizzes')->delete();
+
+    $this->artisan('rbac:sync')->assertSuccessful();
+
+    $names = $teacher->permissions()->pluck('name');
+
+    expect($names)->toContain('quizzes.create', 'quizzes.view')
+        ->not->toContain('quizzes.approve', 'attendance.edit');
+});

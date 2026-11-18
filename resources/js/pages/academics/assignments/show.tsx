@@ -1,5 +1,5 @@
 import { Link, useForm } from '@inertiajs/react';
-import { CalendarClock, Pencil } from 'lucide-react';
+import { CalendarClock, Paperclip, Pencil } from 'lucide-react';
 import type { FormEvent } from 'react';
 import ConfirmDelete from '@/components/confirm-delete';
 import FormField from '@/components/form-field';
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { fileSize } from '@/components/learning/format';
 import { useFormat } from '@/hooks/use-format';
 import {
     destroy,
@@ -25,8 +26,39 @@ import {
 } from '@/routes/academics/assignments';
 import type { AssignmentSummary } from '@/types';
 
+type FileLink = { id: number; name: string; size: number; url: string };
+
+function FileList({ files }: { files: FileLink[] }) {
+    if (files.length === 0) {
+        return null;
+    }
+
+    return (
+        <ul className="flex flex-wrap gap-2">
+            {files.map((file) => (
+                <li key={file.id}>
+                    <a
+                        href={file.url}
+                        className="inline-flex items-center gap-1.5 rounded-lg border bg-background px-3 py-1.5 text-sm hover:bg-muted"
+                    >
+                        <Paperclip
+                            className="size-3.5 text-muted-foreground"
+                            aria-hidden
+                        />
+                        {file.name}
+                        <span className="text-xs text-muted-foreground">
+                            {fileSize(file.size)}
+                        </span>
+                    </a>
+                </li>
+            ))}
+        </ul>
+    );
+}
+
 type Submission = {
     id: number;
+    files?: FileLink[];
     content: string;
     submitted_at: string;
     late: boolean;
@@ -36,7 +68,10 @@ type Submission = {
 };
 
 type Props = {
-    assignment: AssignmentSummary;
+    assignment: AssignmentSummary & {
+        attachments?: FileLink[];
+        for_chosen_students?: boolean;
+    };
     students: { id: number; name: string; submission: Submission | null }[];
     can: { update: boolean; grade: boolean; submit: boolean };
 };
@@ -110,11 +145,18 @@ function SubmitForm({
     assignment: AssignmentSummary;
     existing: Submission | null;
 }) {
-    const form = useForm({ content: existing?.content ?? '' });
+    const form = useForm({
+        content: existing?.content ?? '',
+        files: [] as File[],
+    });
 
     const send = (event: FormEvent): void => {
         event.preventDefault();
-        form.post(submitRoute.url(assignment.id), { preserveScroll: true });
+        form.post(submitRoute.url(assignment.id), {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => form.setData('files', []),
+        });
     };
 
     return (
@@ -130,9 +172,32 @@ function SubmitForm({
                     rows={8}
                     value={form.data.content}
                     onChange={(e) => form.setData('content', e.target.value)}
-                    required
                 />
             </FormField>
+            <FormField
+                id="submission-files"
+                label="Attach your work"
+                error={
+                    form.errors.files ??
+                    (form.errors as Record<string, string>)['files.0']
+                }
+                description="Optional: photos of written work, documents or recordings (up to 5 files)."
+            >
+                <Input
+                    id="submission-files"
+                    type="file"
+                    multiple
+                    onChange={(e) =>
+                        form.setData(
+                            'files',
+                            Array.from(e.target.files ?? []).slice(0, 5),
+                        )
+                    }
+                />
+            </FormField>
+            {existing?.files && existing.files.length > 0 && (
+                <FileList files={existing.files} />
+            )}
             <Button
                 type="submit"
                 disabled={form.processing}
@@ -198,6 +263,17 @@ export default function ShowAssignment({ assignment, students, can }: Props) {
                     <p className="text-sm whitespace-pre-line">
                         {assignment.description}
                     </p>
+                    {assignment.attachments &&
+                        assignment.attachments.length > 0 && (
+                            <div className="mt-4">
+                                <FileList files={assignment.attachments} />
+                            </div>
+                        )}
+                    {assignment.for_chosen_students && !can.submit && (
+                        <p className="mt-3 text-xs text-muted-foreground">
+                            Set for selected students only.
+                        </p>
+                    )}
                 </CardContent>
             </Card>
 
@@ -281,9 +357,17 @@ export default function ShowAssignment({ assignment, students, can }: Props) {
                                     </div>
                                     {student.submission && (
                                         <>
-                                            <p className="rounded-xl bg-muted/60 p-3 text-sm whitespace-pre-line">
-                                                {student.submission.content}
-                                            </p>
+                                            {student.submission.content && (
+                                                <p className="rounded-xl bg-muted/60 p-3 text-sm whitespace-pre-line">
+                                                    {student.submission.content}
+                                                </p>
+                                            )}
+                                            <FileList
+                                                files={
+                                                    student.submission.files ??
+                                                    []
+                                                }
+                                            />
                                             {can.grade ? (
                                                 <GradeForm
                                                     assignment={assignment}

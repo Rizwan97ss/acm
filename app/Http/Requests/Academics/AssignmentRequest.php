@@ -5,6 +5,7 @@ namespace App\Http\Requests\Academics;
 use App\Enums\AssignmentType;
 use App\Http\Requests\Concerns\ValidatesSchoolRecords;
 use App\Models\Assignment;
+use App\Services\Learning\LearningFiles;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -35,6 +36,15 @@ class AssignmentRequest extends FormRequest
             'description' => ['required', 'string', 'max:10000'],
             'due_on' => ['required', 'date'],
             'max_marks' => ['nullable', 'numeric', 'min:1', 'max:1000'],
+            'student_ids' => ['nullable', 'array', 'max:200'],
+            'student_ids.*' => ['integer', 'distinct', $this->existsInSchool('students')],
+            'attachments' => ['nullable', 'array', 'max:10'],
+            'attachments.*' => ['file', 'max:'.app(LearningFiles::class)->maxUploadKilobytes(), 'extensions:'.self::extensions(), 'mimes:'.self::extensions()],
         ];
+    }
+
+    private static function extensions(): string
+    {
+        return implode(',', array_keys((array) config('lms.extensions')));
     }
 }

@@ -87,6 +87,9 @@ class HandleInertiaRequests extends Middleware
                 'timeFormat' => $this->settings->current('localization.time_format'),
                 'currency' => $this->settings->current('localization.currency'),
             ],
+            'features' => fn (): array => $user === null ? [] : [
+                'learning' => (bool) $this->settings->current('lms.enabled'),
+            ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

@@ -181,6 +181,58 @@ return [
             ],
         ],
 
+        'lms' => [
+            'label' => 'Learning (LMS)',
+            'description' => 'Online learning content, live classes and storage limits for each school.',
+            'settings' => [
+                'lms.enabled' => [
+                    'label' => 'Enable the learning portal',
+                    'type' => 'boolean',
+                    'default' => true,
+                    'scopes' => ['global', 'school'],
+                    'description' => 'Turns courses, lessons, live classes and quizzes on or off for the school.',
+                ],
+                'lms.max_upload_mb' => [
+                    'label' => 'Largest file teachers can upload (MB)',
+                    'type' => 'integer',
+                    'default' => 200,
+                    'rules' => ['required', 'integer', 'min:1', 'max:2048'],
+                    'scopes' => ['global', 'school'],
+                    'description' => 'Also limited by the server’s PHP upload_max_filesize and post_max_size.',
+                ],
+                'lms.storage_quota_mb' => [
+                    'label' => 'Storage quota (MB)',
+                    'type' => 'integer',
+                    'default' => 10240,
+                    'rules' => ['required', 'integer', 'min:0', 'max:10485760'],
+                    'scopes' => ['global', 'school'],
+                    'description' => 'Total space for lesson materials and assignment files. 0 means unlimited.',
+                ],
+                'lms.allow_downloads' => [
+                    'label' => 'Allow downloads by default',
+                    'type' => 'boolean',
+                    'default' => true,
+                    'scopes' => ['global', 'school'],
+                    'description' => 'Teachers can still change this for each material.',
+                ],
+                'lms.live_class_reminder_minutes' => [
+                    'label' => 'Live class reminder (minutes before)',
+                    'type' => 'integer',
+                    'default' => 15,
+                    'rules' => ['required', 'integer', 'min:0', 'max:1440'],
+                    'scopes' => ['global', 'school'],
+                    'description' => '0 turns reminders off.',
+                ],
+                'lms.join_early_minutes' => [
+                    'label' => 'Students can join live classes early (minutes)',
+                    'type' => 'integer',
+                    'default' => 10,
+                    'rules' => ['required', 'integer', 'min:0', 'max:120'],
+                    'scopes' => ['global', 'school'],
+                ],
+            ],
+        ],
+
         'notifications' => [
             'label' => 'Notifications',
             'description' => 'Which channels and automatic alerts are enabled.',

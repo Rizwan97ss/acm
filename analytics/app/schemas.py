@@ -76,3 +76,18 @@ class ReportRequest(BaseModel):
     title: str = Field(max_length=150)
     attendance: AttendanceTrendsRequest | None = None
     finance: FinanceForecastRequest | None = None
+
+
+class StudentLearning(BaseModel):
+    student_id: int
+    section: str | None = Field(default=None, max_length=100)
+    lessons_available: int = Field(ge=0)
+    lessons_completed: int = Field(ge=0)
+    days_since_active: int | None = Field(default=None, ge=0)
+    quiz_average: float | None = Field(default=None, ge=0, le=100)
+    work_due: int = Field(ge=0, default=0)
+    work_submitted: int = Field(ge=0, default=0)
+
+
+class LearningEngagementRequest(BaseModel):
+    students: list[StudentLearning] = Field(max_length=20000)

@@ -22,7 +22,9 @@ class AssignmentService
             ->where('academic_year_id', $assignment->academic_year_id)
             ->exists();
 
-        if (! $enrolled) {
+        $chosen = $assignment->students()->pluck('students.id');
+
+        if (! $enrolled || ($chosen->isNotEmpty() && ! $chosen->contains($student->id))) {
             throw ValidationException::withMessages(['content' => __('This assignment is not set for your class.')]);
         }
 

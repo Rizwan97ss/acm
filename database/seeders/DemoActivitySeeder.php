@@ -7,14 +7,20 @@ use App\Enums\AttendanceStatus;
 use App\Enums\Audience;
 use App\Enums\CertificateType;
 use App\Enums\LeaveStatus;
+use App\Enums\LiveClassStatus;
+use App\Enums\MaterialKind;
+use App\Enums\MeetingProvider;
 use App\Enums\PaymentMethod;
 use App\Enums\PayrollStatus;
+use App\Enums\PublishStatus;
+use App\Enums\QuizType;
 use App\Models\AcademicYear;
 use App\Models\Assignment;
 use App\Models\AttendanceRecord;
 use App\Models\Certificate;
 use App\Models\ContactInquiry;
 use App\Models\Conversation;
+use App\Models\Course;
 use App\Models\Document;
 use App\Models\Employee;
 use App\Models\Enrollment;
@@ -26,13 +32,19 @@ use App\Models\Invoice;
 use App\Models\InvoiceBatch;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
+use App\Models\Lesson;
+use App\Models\LessonMaterial;
+use App\Models\LessonProgress;
 use App\Models\LibraryBook;
 use App\Models\LibraryLoan;
+use App\Models\LiveClass;
 use App\Models\PayrollRun;
 use App\Models\Period;
+use App\Models\Quiz;
 use App\Models\Role;
 use App\Models\SalaryProfile;
 use App\Models\School;
+use App\Models\SchoolClass;
 use App\Models\Section;
 use App\Models\Student;
 use App\Models\TimetableEntry;
@@ -46,6 +58,7 @@ use App\Services\Communication\MessagingService;
 use App\Services\Finance\BillingService;
 use App\Services\Hr\LeaveService;
 use App\Services\Hr\PayrollService;
+use App\Services\Learning\QuizService;
 use App\Services\Library\LibraryService;
 use App\Services\Rbac\PermissionResolver;
 use App\Services\Records\CertificateService;
@@ -148,6 +161,7 @@ class DemoActivitySeeder extends Seeder
         $this->step('Portal accounts and messages', fn () => $this->portalAndMessages());
         $this->step('Documents and certificates', fn () => $this->records());
         $this->step('Library loans', fn () => $this->library());
+        $this->step('Courses, live classes and quizzes', fn () => $this->learning());
         $this->step('Website enquiries and webhook', fn () => $this->administration());
 
         app(PermissionResolver::class)->flush();
@@ -758,6 +772,172 @@ class DemoActivitySeeder extends Seeder
         }
 
         return "{$loans} loans";
+    }
+
+    /* --------------------------------------------------------------- learning */
+
+    private function learning(): string
+    {
+        if (Course::query()->exists()) {
+            return 'already there';
+        }
+
+        $plans = [
+            'ENG' => ['Reading for meaning', [['Stories and characters', ['Who is telling the story?', 'Describing characters', 'Beginning, middle and end']], ['Words and sentences', ['Nouns and verbs', 'Joining sentences', 'Using full stops and capitals']]]],
+            'MATH' => ['Number sense and fractions', [['Place value', ['Hundreds, tens and ones', 'Comparing numbers', 'Rounding']], ['Fractions', ['What is a fraction?', 'Equivalent fractions', 'Adding simple fractions']]]],
+            'SCI' => ['Living things and energy', [['Plants', ['Parts of a plant', 'How plants make food', 'Life cycle of a plant']], ['Energy', ['Forms of energy', 'Light and shadows', 'Saving energy at home']]]],
+            'PHY' => ['Forces and motion', [['Motion', ['Speed and velocity', 'Acceleration', 'Distance–time graphs']], ['Forces', ['Newton’s first law', 'Friction', 'Balanced and unbalanced forces']]]],
+        ];
+        $links = [
+            ['Watch: short explainer video', 'https://www.youtube.com/results?search_query='],
+            ['Practise online', 'https://www.khanacademy.org/search?page_search_query='],
+        ];
+
+        $classes = SchoolClass::query()->with(['subjects', 'sections'])->whereIn('level', [1, 5, 8, 10])->get();
+        $courses = 0;
+        $lessons = 0;
+
+        foreach ($classes as $class) {
+            foreach ($class->subjects->whereIn('code', array_keys($plans))->take(2) as $subject) {
+                [$title, $chapters] = $plans[$subject->code];
+                $section = $class->sections->first();
+                $teacherId = TimetableEntry::query()->where('section_id', $section?->id)->where('subject_id', $subject->id)->value('teacher_id') ?? $section?->class_teacher_id;
+
+                $course = Course::query()->create([
+                    'school_id' => $this->school->id,
+                    'academic_year_id' => $this->year->id,
+                    'school_class_id' => $class->id,
+                    'subject_id' => $subject->id,
+                    'title' => "{$title} ({$class->name})",
+                    'description' => "Core {$subject->name} topics for {$class->name}, with notes, videos and practice.",
+                    'status' => PublishStatus::Published,
+                    'created_by' => $teacherId,
+                ]);
+                $courses++;
+
+                foreach ($chapters as $chapterIndex => [$chapterTitle, $lessonTitles]) {
+                    $chapter = $course->chapters()->create(['school_id' => $this->school->id, 'title' => $chapterTitle, 'position' => $chapterIndex + 1]);
+
+                    foreach ($lessonTitles as $lessonIndex => $lessonTitle) {
+                        $published = ! ($chapterIndex === 1 && $lessonIndex === 2);
+                        $lesson = Lesson::query()->create([
+                            'school_id' => $this->school->id,
+                            'course_id' => $course->id,
+                            'course_chapter_id' => $chapter->id,
+                            'title' => $lessonTitle,
+                            'summary' => 'In this lesson you will learn about '.Str::lower($lessonTitle).'.',
+                            'body' => "Read the notes, watch the short video, then try the practice questions.\n\nKey idea: ".Str::lower($lessonTitle).' builds on what you learned in the previous lesson. Write down one question you still have and bring it to class.',
+                            'estimated_minutes' => [15, 20, 25, 30][array_rand([15, 20, 25, 30])],
+                            'status' => $published ? PublishStatus::Published : PublishStatus::Draft,
+                            'notified_at' => $published ? now() : null,
+                            'position' => $lessonIndex + 1,
+                            'created_by' => $teacherId,
+                        ]);
+                        $lessons++;
+
+                        foreach ($links as $position => [$label, $url]) {
+                            LessonMaterial::query()->create([
+                                'school_id' => $this->school->id,
+                                'lesson_id' => $lesson->id,
+                                'kind' => MaterialKind::Link,
+                                'title' => $label,
+                                'url' => $url.urlencode($lessonTitle),
+                                'is_downloadable' => false,
+                                'position' => $position + 1,
+                                'uploaded_by' => $teacherId,
+                            ]);
+                        }
+                    }
+                }
+
+                $this->learningActivity($course, $teacherId);
+            }
+        }
+
+        return "{$courses} courses, {$lessons} lessons";
+    }
+
+    private function learningActivity(Course $course, ?int $teacherId): void
+    {
+        $lessonIds = Lesson::query()->where('course_id', $course->id)->where('status', PublishStatus::Published)->orderBy('course_chapter_id')->orderBy('position')->pluck('id');
+        $students = Enrollment::query()->where('academic_year_id', $this->year->id)
+            ->whereHas('section', fn ($query) => $query->where('school_class_id', $course->school_class_id))->pluck('student_id');
+
+        foreach ($students as $studentId) {
+            $reach = mt_rand(0, $lessonIds->count());
+
+            foreach ($lessonIds->take($reach) as $index => $lessonId) {
+                $viewed = $this->today->subDays(mt_rand(0, 20))->setTime(mt_rand(15, 20), mt_rand(0, 59));
+                LessonProgress::query()->create([
+                    'school_id' => $this->school->id,
+                    'lesson_id' => $lessonId,
+                    'student_id' => $studentId,
+                    'first_viewed_at' => $viewed,
+                    'last_viewed_at' => $viewed,
+                    'completed_at' => $index < $reach - 1 || mt_rand(0, 1) === 1 ? $viewed : null,
+                    'views' => mt_rand(1, 4),
+                ]);
+            }
+        }
+
+        LiveClass::query()->create([
+            'school_id' => $this->school->id,
+            'academic_year_id' => $this->year->id,
+            'school_class_id' => $course->school_class_id,
+            'subject_id' => $course->subject_id,
+            'course_id' => $course->id,
+            'title' => 'Live revision: '.Str::before($course->title, ' ('),
+            'description' => 'Bring your questions from this week’s lessons.',
+            'provider' => MeetingProvider::GoogleMeet,
+            'meeting_url' => 'https://meet.google.com/demo-'.Str::lower(Str::random(3)).'-'.Str::lower(Str::random(4)),
+            'starts_at' => $this->today->addDays(mt_rand(1, 6))->setTime(mt_rand(15, 17), 0),
+            'duration_minutes' => 45,
+            'status' => LiveClassStatus::Scheduled,
+            'created_by' => $teacherId,
+        ]);
+
+        $quiz = Quiz::query()->create([
+            'school_id' => $this->school->id,
+            'academic_year_id' => $this->year->id,
+            'school_class_id' => $course->school_class_id,
+            'subject_id' => $course->subject_id,
+            'course_id' => $course->id,
+            'type' => QuizType::Quiz,
+            'title' => 'Check your understanding: '.Str::before($course->title, ' ('),
+            'instructions' => 'Answer every question. You have one attempt.',
+            'closes_at' => $this->today->addDays(10)->setTime(23, 59),
+            'max_attempts' => 1,
+            'show_results' => true,
+            'status' => PublishStatus::Published,
+            'notified_at' => now(),
+            'created_by' => $teacherId,
+        ]);
+
+        $questions = [
+            $quiz->questions()->create(['school_id' => $this->school->id, 'type' => 'single_choice', 'prompt' => 'Which statement best matches the first lesson?', 'options' => [['id' => 'a', 'text' => 'It introduces the main idea'], ['id' => 'b', 'text' => 'It has no main idea'], ['id' => 'c', 'text' => 'It is only about spelling']], 'answer_key' => ['a'], 'marks' => 2, 'position' => 1]),
+            $quiz->questions()->create(['school_id' => $this->school->id, 'type' => 'true_false', 'prompt' => 'Each lesson builds on the one before it.', 'answer_key' => ['true'], 'marks' => 1, 'position' => 2]),
+            $quiz->questions()->create(['school_id' => $this->school->id, 'type' => 'essay', 'prompt' => 'In two or three sentences, explain one thing you learned.', 'marks' => 3, 'position' => 3]),
+        ];
+
+        $service = app(QuizService::class);
+        $teacher = $teacherId !== null ? User::query()->whereKey($teacherId)->first() : null;
+
+        foreach (Student::query()->whereIn('id', $students->shuffle()->take(max(1, intdiv($students->count(), 2))))->get() as $student) {
+            $attempt = $service->start($student, $quiz);
+            $attempt = $service->submit($attempt, [
+                $questions[0]->id => mt_rand(1, 4) === 1 ? 'b' : 'a',
+                $questions[1]->id => mt_rand(1, 5) === 1 ? 'false' : 'true',
+                $questions[2]->id => 'I learned how the main idea connects the lessons together.',
+            ]);
+
+            if ($teacher !== null && mt_rand(0, 1) === 1) {
+                $essay = $attempt->answers()->where('quiz_question_id', $questions[2]->id)->first();
+
+                if ($essay !== null) {
+                    $service->grade($teacher, $attempt, [$essay->id => ['marks' => mt_rand(1, 3), 'feedback' => 'Clear explanation.']], 'Good effort.');
+                }
+            }
+        }
     }
 
     /* --------------------------------------------------------- administration */

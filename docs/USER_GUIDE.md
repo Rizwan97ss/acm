@@ -223,6 +223,17 @@ You're set up. Everything after this is day-to-day work.
 - **Timetable**, **Invoices** and receipts, **Announcements**, **Calendar**, **Messages** to the school, **Library** loans, **Transport**, **Certificates**.
 - The bell icon in the header shows new notifications.
 
+### Online learning (LMS)
+- **Teachers:** Learning → **Courses** (chapters → lessons → files and links), **Live classes** (Zoom, Meet, Teams…), **Quizzes & tests** and the **Learning overview** dashboard. You can only target classes and subjects you teach (timetable or class teacher); users holding `courses.approve` / `live_classes.approve` / `quizzes.approve` oversee the whole school.
+- **Who sees what:** content for a class with no section is visible in every section; a section narrows it; “Only selected students” narrows it further. Drafts and lessons with a future *Publish on* time stay hidden.
+- **Files:** PDF, Word, PowerPoint, Excel, MP3/MP4 and images, checked by extension and contents. Stored privately (`LMS_DISK`, default `local`) and opened through signed links that expire after `LMS_SIGNED_URL_MINUTES` (60). Teachers choose per file whether it can be downloaded. Video and audio stream with seeking.
+- **Live classes:** the meeting link is encrypted and only handed to eligible students from *join early* minutes before the start until the end.
+- **Quizzes:** choice, true/false and short answers with accepted answers are marked automatically; essays wait for the teacher. Time limits hand the attempt in automatically. Questions lock once a student starts.
+- **Assignments** now take teacher attachments, “only selected students”, and file hand-ins from students; students are notified when work is marked.
+- **Per-school settings** (Administration → Settings → Learning): turn the portal on/off, upload size limit, storage quota, default download permission, reminder and join-early minutes.
+- **Scheduler required:** run `php artisan schedule:run` every minute (cron) so scheduled lessons/quizzes are announced and live-class reminders go out (`lms:dispatch` runs every 5 minutes). A queue worker delivers the notifications.
+- **Large uploads:** raise PHP `upload_max_filesize` and `post_max_size` (and your web server's body limit) to at least the upload limit you set.
+
 ### Insights and reports
 - **Insights** — attendance trends, students at risk, performance, and a fee-collection forecast (needs the analytics service).
 - **Reports & exports** — download CSV reports.

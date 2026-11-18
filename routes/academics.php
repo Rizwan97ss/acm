@@ -58,6 +58,7 @@ Route::middleware(['auth', 'verified', RequireSchoolContext::class])
         Route::resource('assignments', AssignmentController::class);
         Route::post('assignments/{assignment}/submission', [AssignmentController::class, 'submit'])->name('assignments.submit');
         Route::put('assignments/{assignment}/submissions/{submission}/grade', [AssignmentController::class, 'grade'])->name('assignments.grade');
+        Route::delete('assignments/{assignment}/files/{file}', [AssignmentController::class, 'destroyFile'])->name('assignments.files.destroy');
 
         Route::get('progress', ProgressController::class)->name('progress');
     });

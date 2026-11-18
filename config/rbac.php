@@ -69,6 +69,11 @@ return [
         'documents' => ['label' => 'Documents', 'group' => 'Communication', 'actions' => $crud],
         'certificates' => ['label' => 'Certificates', 'group' => 'Communication', 'actions' => $approvable],
 
+        // Learning (LMS)
+        'courses' => ['label' => 'Courses & Lessons', 'group' => 'Learning', 'actions' => $approvable],
+        'live_classes' => ['label' => 'Live Classes', 'group' => 'Learning', 'actions' => $approvable],
+        'quizzes' => ['label' => 'Quizzes & Tests', 'group' => 'Learning', 'actions' => $approvable],
+
         // Insights
         'reports' => ['label' => 'Reports', 'group' => 'Insights', 'actions' => ['view', 'export']],
         'analytics' => ['label' => 'Analytics', 'group' => 'Insights', 'actions' => ['view', 'export']],
@@ -106,6 +111,9 @@ return [
                 'exams.view', 'grades.view', 'grades.create', 'grades.edit',
                 'assignments.view', 'assignments.create', 'assignments.edit', 'assignments.delete', 'announcements.view', 'events.view', 'messages.*', 'leaves.view', 'leaves.create',
                 'library.view', 'documents.view',
+                'courses.view', 'courses.create', 'courses.edit', 'courses.delete',
+                'live_classes.view', 'live_classes.create', 'live_classes.edit', 'live_classes.delete',
+                'quizzes.view', 'quizzes.create', 'quizzes.edit', 'quizzes.delete',
             ],
         ],
         'student' => [
@@ -115,6 +123,7 @@ return [
                 'timetables.view', 'attendance.view', 'exams.view', 'grades.view', 'assignments.view',
                 'invoices.view', 'announcements.view', 'events.view', 'messages.view', 'library.view', 'documents.view',
                 'transport.view', 'certificates.view',
+                'courses.view', 'live_classes.view', 'quizzes.view',
             ],
         ],
         'parent' => [
@@ -124,6 +133,7 @@ return [
                 'timetables.view', 'attendance.view', 'grades.view', 'assignments.view', 'invoices.view',
                 'payments.view', 'announcements.view', 'events.view', 'messages.view',
                 'messages.create', 'documents.view', 'library.view', 'transport.view', 'certificates.view',
+                'courses.view', 'live_classes.view', 'quizzes.view',
             ],
         ],
         'accountant' => [

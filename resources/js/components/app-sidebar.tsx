@@ -43,6 +43,9 @@ import {
     ShieldCheck,
     UserRound,
     Users,
+    BookOpenText,
+    ListChecks,
+    Video,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -58,6 +61,11 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard, help } from '@/routes';
+import { index as learn } from '@/routes/learn';
+import { dashboard as learningDashboard } from '@/routes/learning';
+import { index as learningCourses } from '@/routes/learning/courses';
+import { index as liveClasses } from '@/routes/learning/live-classes';
+import { index as quizzes } from '@/routes/learning/quizzes';
 import { insights } from '@/routes/analytics';
 import { index as imports } from '@/routes/imports';
 import { index as announcements } from '@/routes/communication/announcements';
@@ -105,7 +113,7 @@ import type { NavGroup } from '@/types';
  * Sidebar navigation. Each module adds its group here; items declare the
  * permissions that reveal them, and NavMain hides what the user cannot use.
  */
-function navGroups(singleInstitute: boolean): NavGroup[] {
+function navGroups(singleInstitute: boolean, learning: boolean): NavGroup[] {
     return [
         {
             title: 'Overview',
@@ -121,6 +129,51 @@ function navGroups(singleInstitute: boolean): NavGroup[] {
                 { title: 'Help & guide', href: help(), icon: LifeBuoy },
             ],
         },
+        ...(learning
+            ? [
+                  {
+                      title: 'Learning',
+                      tone: 'amber' as const,
+                      items: [
+                          {
+                              title: 'My learning',
+                              href: learn(),
+                              icon: GraduationCap,
+                              audience: 'portal' as const,
+                              permissions: ['courses.view'],
+                          },
+                          {
+                              title: 'Learning overview',
+                              href: learningDashboard(),
+                              icon: LineChart,
+                              audience: 'staff' as const,
+                              permissions: ['courses.create'],
+                          },
+                          {
+                              title: 'Courses',
+                              href: learningCourses(),
+                              icon: BookOpenText,
+                              audience: 'staff' as const,
+                              permissions: ['courses.create'],
+                          },
+                          {
+                              title: 'Live classes',
+                              href: liveClasses(),
+                              icon: Video,
+                              audience: 'staff' as const,
+                              permissions: ['live_classes.create'],
+                          },
+                          {
+                              title: 'Quizzes & tests',
+                              href: quizzes(),
+                              icon: ListChecks,
+                              audience: 'staff' as const,
+                              permissions: ['quizzes.create'],
+                          },
+                      ],
+                  },
+              ]
+            : []),
         {
             title: 'People',
             tone: 'emerald',
@@ -450,7 +503,7 @@ function navGroups(singleInstitute: boolean): NavGroup[] {
 }
 
 export function AppSidebar() {
-    const { tenant } = usePage().props;
+    const { tenant, features } = usePage().props;
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -468,7 +521,10 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent className="gap-4">
-                {navGroups(tenant?.mode !== 'multi').map((group) => (
+                {navGroups(
+                    tenant?.mode !== 'multi',
+                    features?.learning ?? false,
+                ).map((group) => (
                     <NavMain
                         key={group.title}
                         label={group.title}

@@ -1,5 +1,14 @@
 import { Link, router } from '@inertiajs/react';
-import { Bell, CheckCheck, Megaphone, MessagesSquare } from 'lucide-react';
+import {
+    Bell,
+    BookOpenText,
+    CheckCheck,
+    ClipboardCheck,
+    ListChecks,
+    Megaphone,
+    MessagesSquare,
+    Video,
+} from 'lucide-react';
 import Pagination from '@/components/data/pagination';
 import PageHeader from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -18,6 +27,13 @@ const icons = {
         className: 'from-royal-500 to-navy-500',
     },
     general: { icon: Bell, className: 'from-sky-500 to-cyan-500' },
+    lesson: { icon: BookOpenText, className: 'from-navy-600 to-royal-500' },
+    live_class: { icon: Video, className: 'from-emerald-500 to-teal-500' },
+    quiz: { icon: ListChecks, className: 'from-gold-500 to-orange-500' },
+    assignment: {
+        icon: ClipboardCheck,
+        className: 'from-crimson-500 to-rose-500',
+    },
 };
 
 export default function Notifications({ notifications }: Props) {
