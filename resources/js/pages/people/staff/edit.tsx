@@ -1,6 +1,7 @@
 import PageHeader from '@/components/page-header';
 import type { EmployeeFormOptions } from '@/components/people/employee-form';
 import EmployeeForm from '@/components/people/employee-form';
+import IdentityPanel from '@/components/people/identity-panel';
 import { index, update } from '@/routes/people/staff';
 import type { Employee } from '@/types';
 
@@ -13,6 +14,13 @@ export default function EditEmployee({
             <PageHeader
                 title={`Edit ${employee.full_name}`}
                 description={employee.employee_no}
+            />
+            <IdentityPanel
+                type="staff"
+                id={employee.id}
+                name={employee.full_name}
+                photoUrl={employee.photo_url}
+                canEdit
             />
             <EmployeeForm
                 {...options}

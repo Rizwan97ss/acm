@@ -48,12 +48,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property CarbonImmutable $joined_on
  * @property CarbonImmutable|null $left_on
  * @property EmployeeStatus $status
+ * @property string|null $photo_path
+ * @property string|null $card_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  */
 #[Fillable(['school_id', 'user_id', 'employee_no', 'first_name', 'last_name', 'gender', 'date_of_birth', 'email', 'phone', 'national_id', 'bank_account', 'address', 'is_teaching', 'designation', 'department', 'qualification', 'employment_type', 'joined_on', 'left_on', 'status'])]
-#[Hidden(['phone_index', 'national_id_index'])]
+#[Hidden(['phone_index', 'national_id_index', 'photo_path', 'card_token'])]
 class Employee extends Model
 {
     /** @use HasFactory<EmployeeFactory> */

@@ -25,6 +25,7 @@ class EmployeeResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'photo_url' => $this->photo_path !== null ? route('people.photos.show', ['kind' => 'staff', 'id' => $this->id, 'v' => substr(md5($this->photo_path), 0, 8)]) : null,
             'employee_no' => $this->employee_no,
             'user_id' => $this->user_id,
             'user' => $this->whenLoaded('user', fn () => $this->user?->only(['id', 'name', 'email'])),

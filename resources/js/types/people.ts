@@ -14,6 +14,7 @@ export type YearOption = { id: number; name: string; is_current: boolean };
 
 export type Student = {
     id: number;
+    photo_url?: string | null;
     admission_no: string;
     first_name: string;
     last_name: string;
@@ -42,6 +43,7 @@ export type Student = {
 
 export type Guardian = {
     id: number;
+    photo_url?: string | null;
     first_name: string;
     last_name: string;
     full_name: string;
@@ -67,6 +69,7 @@ export type Guardian = {
 
 export type Employee = {
     id: number;
+    photo_url?: string | null;
     employee_no: string;
     user_id: number | null;
     user?: { id: number; name: string; email: string } | null;

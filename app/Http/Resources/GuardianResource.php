@@ -25,6 +25,7 @@ class GuardianResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'photo_url' => $this->photo_path !== null ? route('people.photos.show', ['kind' => 'guardians', 'id' => $this->id, 'v' => substr(md5($this->photo_path), 0, 8)]) : null,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'full_name' => $this->full_name,

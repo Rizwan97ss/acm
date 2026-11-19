@@ -39,12 +39,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $address
  * @property CarbonImmutable $admission_date
  * @property StudentStatus $status
+ * @property string|null $photo_path
+ * @property string|null $card_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  */
 #[Fillable(['school_id', 'user_id', 'admission_no', 'first_name', 'last_name', 'gender', 'date_of_birth', 'email', 'national_id', 'blood_group', 'medical_notes', 'address', 'admission_date', 'status'])]
-#[Hidden(['national_id_index'])]
+#[Hidden(['national_id_index', 'photo_path', 'card_token'])]
 class Student extends Model
 {
     /** @use HasFactory<StudentFactory> */
@@ -125,5 +127,15 @@ class Student extends Model
     public function currentEnrollment(): HasOne
     {
         return $this->hasOne(Enrollment::class)->whereHas('academicYear', fn (Builder $query) => $query->where('is_current', true));
+    }
+
+    /**
+     * The student's current hostel stay, if any.
+     *
+     * @return HasOne<HostelAllocation, $this>
+     */
+    public function hostelStay(): HasOne
+    {
+        return $this->hasOne(HostelAllocation::class)->whereNull('ends_on')->latestOfMany('starts_on');
     }
 }

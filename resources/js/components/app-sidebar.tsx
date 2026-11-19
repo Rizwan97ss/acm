@@ -46,6 +46,8 @@ import {
     BookOpenText,
     ListChecks,
     Video,
+    IdCard,
+    Building,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -61,6 +63,9 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard, help } from '@/routes';
+import { index as organization } from '@/routes/admin/organization';
+import { index as hostels } from '@/routes/operations/hostels';
+import { index as idCards } from '@/routes/people/id-cards';
 import { index as learn } from '@/routes/learn';
 import { dashboard as learningDashboard } from '@/routes/learning';
 import { index as learningCourses } from '@/routes/learning/courses';
@@ -201,6 +206,18 @@ function navGroups(singleInstitute: boolean, learning: boolean): NavGroup[] {
                     href: staff(),
                     icon: Briefcase,
                     permissions: ['employees.view', 'teachers.view'],
+                },
+                {
+                    title: 'ID cards',
+                    href: idCards(),
+                    icon: IdCard,
+                    audience: 'staff',
+                    permissions: [
+                        'students.view',
+                        'guardians.view',
+                        'employees.view',
+                        'teachers.view',
+                    ],
                 },
                 {
                     title: 'Bulk import',
@@ -388,6 +405,13 @@ function navGroups(singleInstitute: boolean, learning: boolean): NavGroup[] {
                     audience: 'staff',
                 },
                 {
+                    title: 'Hostels',
+                    href: hostels(),
+                    icon: Building,
+                    permissions: ['hostels.view'],
+                    audience: 'staff',
+                },
+                {
                     title: 'Documents',
                     href: documents(),
                     icon: FolderOpen,
@@ -472,6 +496,12 @@ function navGroups(singleInstitute: boolean, learning: boolean): NavGroup[] {
                     href: settings(),
                     icon: Settings2,
                     permissions: ['settings.view'],
+                },
+                {
+                    title: 'Management body',
+                    href: organization(),
+                    icon: Landmark,
+                    permissions: ['organization.view'],
                 },
                 {
                     title: 'Audit log',

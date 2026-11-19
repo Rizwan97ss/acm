@@ -3,6 +3,8 @@
 use App\Http\Controllers\People\AdmissionController;
 use App\Http\Controllers\People\EmployeeController;
 use App\Http\Controllers\People\GuardianController;
+use App\Http\Controllers\People\IdCardController;
+use App\Http\Controllers\People\PhotoController;
 use App\Http\Controllers\People\PortalAccountController;
 use App\Http\Controllers\People\StudentController;
 use App\Http\Controllers\People\StudentEnrollmentController;
@@ -14,6 +16,15 @@ Route::middleware(['auth', 'verified', RequireSchoolContext::class])
     ->prefix('people')
     ->name('people.')
     ->group(function () {
+        Route::get('id-cards', [IdCardController::class, 'index'])->name('id-cards.index');
+        Route::get('id-cards/search', [IdCardController::class, 'search'])->middleware('throttle:60,1')->name('id-cards.search');
+        Route::get('id-cards/print', [IdCardController::class, 'print'])->name('id-cards.print');
+        Route::post('id-cards/{type}/{id}/reissue', [IdCardController::class, 'reissue'])->whereIn('type', ['students', 'staff', 'parents'])->whereNumber('id')->name('id-cards.reissue');
+
+        Route::get('photos/{kind}/{id}', [PhotoController::class, 'show'])->whereIn('kind', PhotoController::KINDS)->whereNumber('id')->name('photos.show');
+        Route::post('photos/{kind}/{id}', [PhotoController::class, 'update'])->whereIn('kind', PhotoController::KINDS)->whereNumber('id')->middleware('throttle:30,1')->name('photos.update');
+        Route::delete('photos/{kind}/{id}', [PhotoController::class, 'destroy'])->whereIn('kind', PhotoController::KINDS)->whereNumber('id')->name('photos.destroy');
+
         Route::resource('students', StudentController::class);
         Route::post('students/{student}/enrollments', [StudentEnrollmentController::class, 'store'])->name('students.enrollments.store');
         Route::post('students/{student}/guardians', [StudentGuardianController::class, 'store'])->name('students.guardians.store');

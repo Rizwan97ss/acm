@@ -30,6 +30,7 @@ return [
         'audit_logs' => ['label' => 'Audit Logs', 'group' => 'Administration', 'actions' => ['view', 'export']],
         'integrations' => ['label' => 'API & Webhooks', 'group' => 'Administration', 'actions' => ['view', 'create', 'edit', 'delete']],
         'inquiries' => ['label' => 'Website Enquiries', 'group' => 'Administration', 'actions' => ['view', 'delete']],
+        'organization' => ['label' => 'Management Body', 'group' => 'Administration', 'actions' => ['view', 'create', 'edit', 'delete']],
 
         // Academics
         'academic_years' => ['label' => 'Academic Years', 'group' => 'Academics', 'actions' => $crud],
@@ -61,6 +62,7 @@ return [
         'library' => ['label' => 'Library', 'group' => 'Operations', 'actions' => $crud],
         'transport' => ['label' => 'Transport', 'group' => 'Operations', 'actions' => $crud],
         'inventory' => ['label' => 'Inventory', 'group' => 'Operations', 'actions' => $crud],
+        'hostels' => ['label' => 'Hostels', 'group' => 'Operations', 'actions' => $crud],
 
         // Communication
         'announcements' => ['label' => 'Announcements', 'group' => 'Communication', 'actions' => $approvable],

@@ -9,6 +9,7 @@ use App\Models\Certificate;
 use App\Models\Student;
 use App\Services\People\PortalScope;
 use App\Services\Records\CertificateService;
+use App\Services\Records\QrCodeRenderer;
 use App\Services\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -160,24 +161,32 @@ class CertificateController extends Controller
         return back();
     }
 
-    public function print(Request $request, int $certificate, CurrentSchool $currentSchool): Response
+    public function print(Request $request, int $certificate, CurrentSchool $currentSchool, QrCodeRenderer $qr): Response
     {
         Gate::authorize('certificates.view');
 
         $record = $this->visibleQuery($request)->with('student:id,first_name,last_name,admission_no')->findOrFail($certificate);
+        $verifyUrl = route('certificates.verify', $record->verification_code);
+        $school = $currentSchool->get();
 
         return Inertia::render('standalone/certificate', [
             'certificate' => [
                 'serial_no' => $record->serial_no,
+                'type' => $record->type->value,
                 'title' => $record->title,
                 'body' => $record->body,
+                'student' => $record->student->full_name,
                 'status' => $record->status->value,
                 'issued_on' => $record->issued_on?->toDateString(),
-                'verify_url' => route('certificates.verify', $record->verification_code),
+                'verify_url' => $verifyUrl,
+                'qr_svg' => $qr->svg($verifyUrl, 200),
             ],
             'school' => [
-                'name' => $currentSchool->get()->name ?? config('app.name'),
-                'logo_url' => $currentSchool->get()?->logo_url,
+                'name' => $school->name ?? config('app.name'),
+                'logo_url' => $school?->logo_url,
+                'address' => $school?->address,
+                'phone' => $school?->phone,
+                'email' => $school?->email,
             ],
         ]);
     }

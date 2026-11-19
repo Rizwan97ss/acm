@@ -2,6 +2,7 @@ import { Link, router } from '@inertiajs/react';
 import { Mail } from 'lucide-react';
 import PageHeader from '@/components/page-header';
 import GuardianForm from '@/components/people/guardian-form';
+import IdentityPanel from '@/components/people/identity-panel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { index, update } from '@/routes/people/guardians';
@@ -35,6 +36,13 @@ export default function EditGuardian({ guardian }: { guardian: Guardian }) {
                         </Button>
                     )
                 }
+            />
+            <IdentityPanel
+                type="parents"
+                id={guardian.id}
+                name={guardian.full_name}
+                photoUrl={guardian.photo_url}
+                canEdit
             />
             <div className="grid gap-6 xl:grid-cols-[1fr_20rem]">
                 <GuardianForm

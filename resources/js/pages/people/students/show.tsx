@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import ConfirmDelete from '@/components/confirm-delete';
 import FormField from '@/components/form-field';
 import PageHeader from '@/components/page-header';
+import IdentityPanel from '@/components/people/identity-panel';
 import LinkGuardianDialog from '@/components/people/link-guardian-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -324,6 +325,14 @@ export default function ShowStudent({
                         )}
                     </>
                 }
+            />
+
+            <IdentityPanel
+                type="students"
+                id={student.id}
+                name={student.full_name}
+                photoUrl={student.photo_url}
+                canEdit={student.can.update}
             />
 
             <div className="grid gap-4 lg:grid-cols-3">

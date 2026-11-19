@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\InquiryController;
+use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SchoolController;
 use App\Http\Controllers\Admin\SchoolSwitchController;
@@ -42,6 +43,11 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 });
 
 Route::middleware(['auth', 'verified', RequireSchoolContext::class])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('organization', [OrganizationController::class, 'index'])->name('organization.index');
+    Route::post('organization', [OrganizationController::class, 'store'])->name('organization.store');
+    Route::put('organization/{member}', [OrganizationController::class, 'update'])->name('organization.update');
+    Route::delete('organization/{member}', [OrganizationController::class, 'destroy'])->name('organization.destroy');
+
     Route::get('webhooks', [WebhookController::class, 'index'])->name('webhooks.index');
     Route::post('webhooks', [WebhookController::class, 'store'])->name('webhooks.store');
     Route::put('webhooks/{webhook}', [WebhookController::class, 'update'])->name('webhooks.update');

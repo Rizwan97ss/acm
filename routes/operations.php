@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Operations\HostelController;
 use App\Http\Controllers\Operations\InventoryController;
 use App\Http\Controllers\Operations\TransportController;
+use App\Http\Controllers\People\IdCardController;
 use App\Http\Controllers\Records\CertificateController;
 use App\Http\Controllers\Records\DocumentController;
 use App\Http\Middleware\RequireSchoolContext;
@@ -12,6 +14,11 @@ Route::get('verify/{code}', [CertificateController::class, 'verify'])
     ->middleware('throttle:30,1')
     ->name('certificates.verify');
 
+Route::get('verify/id/{token}', [IdCardController::class, 'verify'])
+    ->where('token', '[A-Za-z0-9]{40}')
+    ->middleware('throttle:30,1')
+    ->name('id-cards.verify');
+
 Route::middleware(['auth', 'verified', RequireSchoolContext::class])->group(function () {
     Route::prefix('operations')->name('operations.')->group(function () {
         Route::get('transport', [TransportController::class, 'index'])->name('transport.index');
@@ -21,6 +28,19 @@ Route::middleware(['auth', 'verified', RequireSchoolContext::class])->group(func
         Route::delete('transport/{route}', [TransportController::class, 'destroy'])->name('transport.destroy');
         Route::post('transport/{route}/riders', [TransportController::class, 'assign'])->name('transport.assign');
         Route::delete('transport-riders/{assignment}', [TransportController::class, 'unassign'])->name('transport.unassign');
+
+        Route::get('hostels', [HostelController::class, 'index'])->name('hostels.index');
+        Route::post('hostels', [HostelController::class, 'store'])->name('hostels.store');
+        Route::get('hostels/{hostel}', [HostelController::class, 'show'])->name('hostels.show');
+        Route::put('hostels/{hostel}', [HostelController::class, 'update'])->name('hostels.update');
+        Route::delete('hostels/{hostel}', [HostelController::class, 'destroy'])->name('hostels.destroy');
+        Route::post('hostels/{hostel}/rooms', [HostelController::class, 'storeRoom'])->name('hostels.rooms.store');
+        Route::post('hostels/{hostel}/bill', [HostelController::class, 'bill'])->middleware('throttle:10,1')->name('hostels.bill');
+        Route::put('hostel-rooms/{room}', [HostelController::class, 'updateRoom'])->name('hostel-rooms.update');
+        Route::delete('hostel-rooms/{room}', [HostelController::class, 'destroyRoom'])->name('hostel-rooms.destroy');
+        Route::post('hostel-rooms/{room}/residents', [HostelController::class, 'allocate'])->name('hostel-rooms.allocate');
+        Route::put('hostel-residents/{allocation}', [HostelController::class, 'move'])->name('hostel-residents.move');
+        Route::delete('hostel-residents/{allocation}', [HostelController::class, 'vacate'])->name('hostel-residents.vacate');
 
         Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
         Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');

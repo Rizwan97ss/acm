@@ -27,6 +27,7 @@ class StudentResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'photo_url' => $this->photo_path !== null ? route('people.photos.show', ['kind' => 'students', 'id' => $this->id, 'v' => substr(md5($this->photo_path), 0, 8)]) : null,
             'admission_no' => $this->admission_no,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,

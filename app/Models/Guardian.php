@@ -31,12 +31,14 @@ use Illuminate\Notifications\Notifiable;
  * @property string|null $phone_index
  * @property string|null $occupation
  * @property string|null $address
+ * @property string|null $photo_path
+ * @property string|null $card_token
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  * @property CarbonImmutable|null $deleted_at
  */
 #[Fillable(['school_id', 'user_id', 'first_name', 'last_name', 'email', 'phone', 'occupation', 'address'])]
-#[Hidden(['phone_index'])]
+#[Hidden(['phone_index', 'photo_path', 'card_token'])]
 class Guardian extends Model
 {
     /** @use HasFactory<GuardianFactory> */
