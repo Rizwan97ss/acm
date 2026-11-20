@@ -20,12 +20,14 @@ export default function AudiencePicker({
     onChange,
     errors,
     allowStudents = false,
+    rosterUrl,
 }: {
     options: TeachingOption[];
     value: AudienceValue;
     onChange: (next: AudienceValue) => void;
     errors: Partial<Record<string, string>>;
     allowStudents?: boolean;
+    rosterUrl?: (query: Record<string, string>) => string;
 }) {
     const selectedClass = options.find(
         (option) => option.id === value.school_class_id,
@@ -140,6 +142,7 @@ export default function AudiencePicker({
                             onChange({ ...value, student_ids: ids })
                         }
                         error={errors.student_ids}
+                        rosterUrl={rosterUrl}
                     />
                 </div>
             )}

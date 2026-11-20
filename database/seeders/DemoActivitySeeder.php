@@ -159,6 +159,7 @@ class DemoActivitySeeder extends Seeder
         $this->step('Salary profiles, leave and payroll', fn () => $this->hrActivity());
         $this->step('Transport seats', fn () => $this->transport());
         $this->call(DemoHostelSeeder::class);
+        $this->call(DemoOnlineExamSeeder::class);
         $this->step('Portal accounts and messages', fn () => $this->portalAndMessages());
         $this->step('Documents and certificates', fn () => $this->records());
         $this->step('Library loans', fn () => $this->library());

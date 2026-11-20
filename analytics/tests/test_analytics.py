@@ -124,3 +124,43 @@ def test_learning_engagement_ignores_signals_that_do_not_apply(signed_post):
 
 def test_learning_engagement_empty(signed_post):
     assert signed_post("/v1/learning/engagement", {"students": []}).json()["summary"] is None
+
+
+def _exam_payload() -> dict:
+    # Question 1 separates strong from weak students; question 2 is answered right only by the weakest.
+    students = [{"student_id": i, "score": s, "section": "A" if i <= 3 else "B"} for i, s in enumerate([9, 8, 7, 4, 3, 2], start=1)]
+    responses = []
+
+    for student in students:
+        strong = student["score"] >= 7
+        responses.append({"student_id": student["student_id"], "question_id": 10, "marks": 5 if strong else 0})
+        responses.append({"student_id": student["student_id"], "question_id": 11, "marks": 5 if student["student_id"] == 6 else 0})
+
+    return {
+        "max_score": 10,
+        "passing_marks": 5,
+        "students": students,
+        "questions": [{"question_id": 10, "number": 1, "marks": 5}, {"question_id": 11, "number": 2, "marks": 5}],
+        "responses": responses,
+    }
+
+
+def test_exam_analysis_summarises_scores_and_flags_bad_questions(signed_post):
+    result = signed_post("/v1/exams/analysis", _exam_payload()).json()
+
+    assert result["summary"]["students"] == 6
+    assert result["summary"]["mean"] == 55.0
+    assert result["summary"]["pass_rate"] == 50.0
+
+    good, bad = result["items"]
+    assert good["number"] == 1 and good["discrimination"] == 1.0 and good["flags"] == []
+    assert bad["discrimination"] < 0 and "negative_discrimination" in bad["flags"]
+    assert [section["section"] for section in result["sections"]] == ["A", "B"]
+    assert result["sections"][0]["pass_rate"] == 100.0
+
+
+def test_exam_analysis_needs_two_students_and_rejects_bad_input(signed_post):
+    single = _exam_payload() | {"students": [{"student_id": 1, "score": 5}]}
+    assert signed_post("/v1/exams/analysis", single).json() == {"summary": None, "items": [], "sections": []}
+
+    assert signed_post("/v1/exams/analysis", _exam_payload() | {"max_score": 0}).status_code == 422

@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('lms:dispatch')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
+Schedule::command('exams:close-overdue')->everyMinute()->withoutOverlapping()->onOneServer();

@@ -11,8 +11,8 @@ from fastapi.responses import HTMLResponse, JSONResponse
 
 from app import security
 from app.config import Settings, load_settings
-from app.schemas import AtRiskRequest, AttendanceTrendsRequest, FinanceForecastRequest, LearningEngagementRequest, PerformanceRequest, ReportRequest
-from app.services import attendance, finance, learning, performance, reports
+from app.schemas import AtRiskRequest, AttendanceTrendsRequest, ExamAnalysisRequest, FinanceForecastRequest, LearningEngagementRequest, PerformanceRequest, ReportRequest
+from app.services import attendance, exams, finance, learning, performance, reports
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -66,6 +66,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/v1/learning/engagement")
     def learning_engagement(payload: LearningEngagementRequest) -> dict:
         return learning.engagement(payload)
+
+    @app.post("/v1/exams/analysis")
+    def exam_analysis(payload: ExamAnalysisRequest) -> dict:
+        return exams.analysis(payload)
 
     @app.post("/v1/finance/forecast")
     def finance_forecast(payload: FinanceForecastRequest) -> dict:

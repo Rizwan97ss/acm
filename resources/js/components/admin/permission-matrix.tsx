@@ -13,7 +13,15 @@ type PermissionMatrixProps = {
     disabled?: boolean;
 };
 
-const ACTIONS = ['view', 'create', 'edit', 'delete', 'approve', 'export'];
+const ACTIONS = [
+    'view',
+    'create',
+    'edit',
+    'delete',
+    'approve',
+    'publish',
+    'export',
+];
 
 /**
  * Module × action grid. Whole rows and columns toggle together; permissions the

@@ -1,8 +1,11 @@
 <?php
 
 use App\Models\AttendanceRecord;
+use App\Models\HostelAllocation;
 use App\Models\Invoice;
 use App\Models\LibraryLoan;
+use App\Models\OnlineExam;
+use App\Models\OnlineExamAttempt;
 use App\Models\Payment;
 use App\Models\Payslip;
 use App\Models\School;
@@ -49,7 +52,10 @@ test('the demo spreadsheets import cleanly and the activity seeder fills every m
     expect(Student::query()->count())->toBe(101)
         ->and(TimetableEntry::query()->count())->toBeGreaterThan(400)
         ->and(AttendanceRecord::query()->exists())->toBeTrue()
-        ->and(Invoice::query()->count())->toBe(400)
+        ->and(Invoice::query()->where('title', 'not like', 'Hostel fee%')->count())->toBe(400)
+        ->and(Invoice::query()->where('title', 'like', 'Hostel fee%')->count())->toBe(HostelAllocation::query()->whereNull('ends_on')->count())
+        ->and(OnlineExam::query()->where('results_status', 'published')->exists())->toBeTrue()
+        ->and(OnlineExamAttempt::query()->where('status', 'submitted')->exists())->toBeTrue()
         ->and(Payment::query()->exists())->toBeTrue()
         ->and(Payslip::query()->exists())->toBeTrue()
         ->and(LibraryLoan::query()->exists())->toBeTrue();

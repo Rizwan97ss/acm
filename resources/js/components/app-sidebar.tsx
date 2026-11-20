@@ -25,6 +25,7 @@ import {
     Wallet,
     Bell,
     ClipboardCheck,
+    FileQuestion,
     FileText,
     NotebookPen,
     Sparkles,
@@ -71,6 +72,9 @@ import { dashboard as learningDashboard } from '@/routes/learning';
 import { index as learningCourses } from '@/routes/learning/courses';
 import { index as liveClasses } from '@/routes/learning/live-classes';
 import { index as quizzes } from '@/routes/learning/quizzes';
+import { index as onlineExams } from '@/routes/academics/online-exams';
+import { index as questionBank } from '@/routes/academics/question-bank';
+import { index as myExams } from '@/routes/exams/my';
 import { insights } from '@/routes/analytics';
 import { index as imports } from '@/routes/imports';
 import { index as announcements } from '@/routes/communication/announcements';
@@ -262,6 +266,27 @@ function navGroups(singleInstitute: boolean, learning: boolean): NavGroup[] {
                     icon: FileText,
                     permissions: ['exams.view'],
                     audience: 'staff',
+                },
+                {
+                    title: 'Online exams',
+                    href: onlineExams(),
+                    icon: FileQuestion,
+                    permissions: ['online_exams.view'],
+                    audience: 'staff',
+                },
+                {
+                    title: 'Question bank',
+                    href: questionBank(),
+                    icon: Library,
+                    permissions: ['question_bank.view'],
+                    audience: 'staff',
+                },
+                {
+                    title: 'My exams',
+                    href: myExams(),
+                    icon: FileQuestion,
+                    permissions: ['online_exams.view'],
+                    audience: 'portal',
                 },
                 {
                     title: 'Classes & sections',

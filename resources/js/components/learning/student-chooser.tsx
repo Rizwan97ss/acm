@@ -14,12 +14,15 @@ export default function StudentChooser({
     value,
     onChange,
     error,
+    rosterUrl = (query) => roster.url({ query }),
 }: {
     classId: number | '';
     sectionId: number | '';
     value: number[];
     onChange: (ids: number[]) => void;
     error?: string;
+    /** Where to load the class roster from (defaults to the learning roster). */
+    rosterUrl?: (query: Record<string, string>) => string;
 }) {
     const [restrict, setRestrict] = useState(value.length > 0);
     const [students, setStudents] = useState<Student[] | null>(null);
@@ -39,7 +42,7 @@ export default function StudentChooser({
         }
 
         setStudents(null);
-        fetch(roster.url({ query }), {
+        fetch(rosterUrl(query), {
             headers: {
                 Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',

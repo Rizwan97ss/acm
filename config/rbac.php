@@ -41,6 +41,8 @@ return [
         'exams' => ['label' => 'Examinations', 'group' => 'Academics', 'actions' => $approvable],
         'grades' => ['label' => 'Grades & Results', 'group' => 'Academics', 'actions' => $approvable],
         'assignments' => ['label' => 'Assignments & Homework', 'group' => 'Academics', 'actions' => $approvable],
+        'online_exams' => ['label' => 'Online Exams', 'group' => 'Academics', 'actions' => [...$approvable, 'publish']],
+        'question_bank' => ['label' => 'Question Bank', 'group' => 'Academics', 'actions' => ['view', 'create', 'edit', 'delete']],
 
         // People
         'admissions' => ['label' => 'Admissions', 'group' => 'People', 'actions' => $approvable],
@@ -101,7 +103,7 @@ return [
         'principal' => [
             'name' => 'Principal',
             'description' => 'Academic leadership with approval rights.',
-            'permissions' => ['*.view', '*.export', '*.approve', 'announcements.*', 'events.*', 'certificates.*'],
+            'permissions' => ['*.view', '*.export', '*.approve', 'announcements.*', 'events.*', 'certificates.*', 'online_exams.publish'],
             'except' => ['schools.export', 'settings.view', 'inquiries.view'],
         ],
         'teacher' => [
@@ -116,6 +118,8 @@ return [
                 'courses.view', 'courses.create', 'courses.edit', 'courses.delete',
                 'live_classes.view', 'live_classes.create', 'live_classes.edit', 'live_classes.delete',
                 'quizzes.view', 'quizzes.create', 'quizzes.edit', 'quizzes.delete',
+                'online_exams.view', 'online_exams.create', 'online_exams.edit', 'online_exams.delete', 'online_exams.export', 'online_exams.publish',
+                'question_bank.view', 'question_bank.create', 'question_bank.edit', 'question_bank.delete',
             ],
         ],
         'student' => [
@@ -125,7 +129,7 @@ return [
                 'timetables.view', 'attendance.view', 'exams.view', 'grades.view', 'assignments.view',
                 'invoices.view', 'announcements.view', 'events.view', 'messages.view', 'library.view', 'documents.view',
                 'transport.view', 'certificates.view',
-                'courses.view', 'live_classes.view', 'quizzes.view',
+                'courses.view', 'live_classes.view', 'quizzes.view', 'online_exams.view',
             ],
         ],
         'parent' => [
@@ -135,7 +139,7 @@ return [
                 'timetables.view', 'attendance.view', 'grades.view', 'assignments.view', 'invoices.view',
                 'payments.view', 'announcements.view', 'events.view', 'messages.view',
                 'messages.create', 'documents.view', 'library.view', 'transport.view', 'certificates.view',
-                'courses.view', 'live_classes.view', 'quizzes.view',
+                'courses.view', 'live_classes.view', 'quizzes.view', 'online_exams.view',
             ],
         ],
         'accountant' => [

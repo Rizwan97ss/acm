@@ -1,4 +1,4 @@
-import { Link, router, useForm } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
     ArrowDown,
     ArrowUp,
@@ -7,20 +7,13 @@ import {
     Plus,
     Send,
     Trash2,
-    X,
 } from 'lucide-react';
-import type { FormEvent } from 'react';
 import { useState } from 'react';
+import QuestionEditor from '@/components/assessment/question-editor';
 import ConfirmDelete from '@/components/confirm-delete';
-import FormField from '@/components/form-field';
 import PageHeader from '@/components/page-header';
 import { TonePill } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { NativeSelect } from '@/components/ui/native-select';
-import { Spinner } from '@/components/ui/spinner';
-import { Textarea } from '@/components/ui/textarea';
 import { useFormat } from '@/hooks/use-format';
 import { cn } from '@/lib/utils';
 import {
@@ -73,328 +66,6 @@ type Props = {
     attempts: Attempt[];
     questionTypes: { value: QuestionType; label: string }[];
 };
-
-type QuestionForm = {
-    type: QuestionType;
-    prompt: string;
-    marks: number;
-    explanation: string;
-    options: { text: string; correct: boolean }[];
-    correct: 'true' | 'false' | '';
-    accepted_answers: string;
-};
-
-function blank(type: QuestionType = 'single_choice'): QuestionForm {
-    return {
-        type,
-        prompt: '',
-        marks: 1,
-        explanation: '',
-        options: [
-            { text: '', correct: true },
-            { text: '', correct: false },
-        ],
-        correct: '',
-        accepted_answers: '',
-    };
-}
-
-function fromQuestion(question: Question): QuestionForm {
-    return {
-        type: question.type,
-        prompt: question.prompt,
-        marks: question.marks,
-        explanation: question.explanation ?? '',
-        options:
-            question.options.length > 0
-                ? question.options.map((option) => ({
-                      text: option.text,
-                      correct: question.answer_key.includes(option.id),
-                  }))
-                : blank().options,
-        correct:
-            question.type === 'true_false'
-                ? ((question.answer_key[0] as 'true' | 'false') ?? '')
-                : '',
-        accepted_answers:
-            question.type === 'short_answer'
-                ? question.answer_key.join(', ')
-                : '',
-    };
-}
-
-function QuestionEditor({
-    quizId,
-    question,
-    types,
-    onDone,
-}: {
-    quizId: number;
-    question: Question | null;
-    types: Props['questionTypes'];
-    onDone: () => void;
-}) {
-    const form = useForm<QuestionForm>(
-        question ? fromQuestion(question) : blank(),
-    );
-    const choice =
-        form.data.type === 'single_choice' ||
-        form.data.type === 'multiple_choice';
-    const lockedError = (form.errors as Partial<Record<string, string>>)
-        .question;
-
-    const setOption = (
-        index: number,
-        changes: Partial<{ text: string; correct: boolean }>,
-    ): void =>
-        form.setData(
-            'options',
-            form.data.options.map((option, position) => {
-                if (form.data.type === 'single_choice' && changes.correct) {
-                    return {
-                        ...option,
-                        ...(position === index ? changes : {}),
-                        correct: position === index,
-                    };
-                }
-
-                return position === index ? { ...option, ...changes } : option;
-            }),
-        );
-
-    const submit = (event: FormEvent): void => {
-        event.preventDefault();
-        form.transform((data) => ({
-            ...data,
-            options: choice ? data.options : null,
-            correct: data.type === 'true_false' ? data.correct : null,
-            accepted_answers:
-                data.type === 'short_answer'
-                    ? data.accepted_answers
-                          .split(',')
-                          .map((answer) => answer.trim())
-                          .filter(Boolean)
-                    : null,
-        }));
-        const options = { preserveScroll: true, onSuccess: onDone };
-
-        if (question) {
-            form.put(updateQuestion.url(question.id), options);
-        } else {
-            form.post(storeQuestion.url(quizId), {
-                ...options,
-                onSuccess: () => {
-                    form.setData(blank(form.data.type));
-                    onDone();
-                },
-            });
-        }
-    };
-
-    return (
-        <form
-            onSubmit={submit}
-            className="grid gap-4 rounded-2xl border-2 border-dashed border-navy-200 bg-card p-5 dark:border-white/15"
-        >
-            <div className="grid gap-4 sm:grid-cols-[1fr_8rem]">
-                <FormField
-                    id="q-type"
-                    label="Question type"
-                    error={form.errors.type}
-                >
-                    <NativeSelect
-                        id="q-type"
-                        value={form.data.type}
-                        onChange={(event) =>
-                            form.setData(
-                                'type',
-                                event.target.value as QuestionType,
-                            )
-                        }
-                    >
-                        {types.map((type) => (
-                            <option key={type.value} value={type.value}>
-                                {type.label}
-                            </option>
-                        ))}
-                    </NativeSelect>
-                </FormField>
-                <FormField id="q-marks" label="Marks" error={form.errors.marks}>
-                    <Input
-                        id="q-marks"
-                        type="number"
-                        min={0.5}
-                        max={100}
-                        step={0.5}
-                        value={form.data.marks}
-                        onChange={(event) =>
-                            form.setData('marks', Number(event.target.value))
-                        }
-                    />
-                </FormField>
-            </div>
-            <FormField
-                id="q-prompt"
-                label="Question"
-                required
-                error={form.errors.prompt}
-            >
-                <Textarea
-                    id="q-prompt"
-                    rows={3}
-                    value={form.data.prompt}
-                    onChange={(event) =>
-                        form.setData('prompt', event.target.value)
-                    }
-                />
-            </FormField>
-
-            {choice && (
-                <fieldset className="space-y-2">
-                    <legend className="text-sm font-medium">
-                        Options: tick the correct{' '}
-                        {form.data.type === 'single_choice' ? 'one' : 'ones'}
-                    </legend>
-                    {form.data.options.map((option, position) => (
-                        <div key={position} className="flex items-center gap-2">
-                            <Checkbox
-                                aria-label={`Option ${position + 1} is correct`}
-                                checked={option.correct}
-                                onCheckedChange={(checked) =>
-                                    setOption(position, {
-                                        correct: checked === true,
-                                    })
-                                }
-                            />
-                            <Input
-                                aria-label={`Option ${position + 1}`}
-                                value={option.text}
-                                onChange={(event) =>
-                                    setOption(position, {
-                                        text: event.target.value,
-                                    })
-                                }
-                                placeholder={`Option ${String.fromCharCode(65 + position)}`}
-                            />
-                            {form.data.options.length > 2 && (
-                                <Button
-                                    type="button"
-                                    size="icon"
-                                    variant="ghost"
-                                    aria-label="Remove option"
-                                    onClick={() =>
-                                        form.setData(
-                                            'options',
-                                            form.data.options.filter(
-                                                (_, index) =>
-                                                    index !== position,
-                                            ),
-                                        )
-                                    }
-                                >
-                                    <X aria-hidden />
-                                </Button>
-                            )}
-                        </div>
-                    ))}
-                    {form.data.options.length < 8 && (
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            onClick={() =>
-                                form.setData('options', [
-                                    ...form.data.options,
-                                    { text: '', correct: false },
-                                ])
-                            }
-                        >
-                            <Plus aria-hidden /> Add option
-                        </Button>
-                    )}
-                    {form.errors.options && (
-                        <p className="text-sm text-destructive">
-                            {form.errors.options}
-                        </p>
-                    )}
-                </fieldset>
-            )}
-
-            {form.data.type === 'true_false' && (
-                <FormField
-                    id="q-correct"
-                    label="The statement is"
-                    error={form.errors.correct}
-                >
-                    <NativeSelect
-                        id="q-correct"
-                        value={form.data.correct}
-                        onChange={(event) =>
-                            form.setData(
-                                'correct',
-                                event.target.value as 'true' | 'false',
-                            )
-                        }
-                    >
-                        <option value="">Choose…</option>
-                        <option value="true">True</option>
-                        <option value="false">False</option>
-                    </NativeSelect>
-                </FormField>
-            )}
-
-            {form.data.type === 'short_answer' && (
-                <FormField
-                    id="q-accepted"
-                    label="Accepted answers"
-                    error={form.errors.accepted_answers}
-                    description="Separate with commas; matching ignores capitals. Leave empty to mark by hand."
-                >
-                    <Input
-                        id="q-accepted"
-                        value={form.data.accepted_answers}
-                        onChange={(event) =>
-                            form.setData('accepted_answers', event.target.value)
-                        }
-                        placeholder="e.g. photosynthesis, photo-synthesis"
-                    />
-                </FormField>
-            )}
-
-            {form.data.type === 'essay' && (
-                <p className="text-sm text-muted-foreground">
-                    Essay answers are marked by you after students hand in.
-                </p>
-            )}
-
-            <FormField
-                id="q-explanation"
-                label="Explanation shown after marking"
-                error={form.errors.explanation}
-            >
-                <Input
-                    id="q-explanation"
-                    value={form.data.explanation}
-                    onChange={(event) =>
-                        form.setData('explanation', event.target.value)
-                    }
-                />
-            </FormField>
-            {lockedError && (
-                <p className="text-sm text-destructive">{lockedError}</p>
-            )}
-            <div className="flex gap-2">
-                <Button type="submit" disabled={form.processing}>
-                    {form.processing && <Spinner />}
-                    {question ? 'Save question' : 'Add question'}
-                </Button>
-                <Button type="button" variant="ghost" onClick={onDone}>
-                    Cancel
-                </Button>
-            </div>
-        </form>
-    );
-}
 
 export default function QuizShow({
     quiz,
@@ -511,9 +182,12 @@ export default function QuizShow({
                     editing === question.id ? (
                         <QuestionEditor
                             key={question.id}
-                            quizId={quiz.id}
                             question={question}
                             types={questionTypes}
+                            action={{
+                                method: 'put',
+                                url: updateQuestion.url(question.id),
+                            }}
                             onDone={() => setEditing(null)}
                         />
                     ) : (
@@ -652,9 +326,12 @@ export default function QuizShow({
 
                 {editing === 'new' && !locked && (
                     <QuestionEditor
-                        quizId={quiz.id}
                         question={null}
                         types={questionTypes}
+                        action={{
+                            method: 'post',
+                            url: storeQuestion.url(quiz.id),
+                        }}
                         onDone={() => setEditing(null)}
                     />
                 )}

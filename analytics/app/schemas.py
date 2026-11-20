@@ -91,3 +91,29 @@ class StudentLearning(BaseModel):
 
 class LearningEngagementRequest(BaseModel):
     students: list[StudentLearning] = Field(max_length=20000)
+
+
+class ExamStudent(BaseModel):
+    student_id: int
+    score: float
+    section: str | None = Field(default=None, max_length=100)
+
+
+class ExamQuestion(BaseModel):
+    question_id: int
+    number: int = Field(ge=1)
+    marks: float = Field(gt=0)
+
+
+class ExamResponse(BaseModel):
+    student_id: int
+    question_id: int
+    marks: float
+
+
+class ExamAnalysisRequest(BaseModel):
+    max_score: float = Field(gt=0)
+    passing_marks: float = Field(ge=0)
+    students: list[ExamStudent] = Field(max_length=5000)
+    questions: list[ExamQuestion] = Field(max_length=500)
+    responses: list[ExamResponse] = Field(max_length=500_000)
